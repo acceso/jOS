@@ -1,29 +1,38 @@
 
-ENTRY (loader)
 
 OUTPUT_FORMAT(elf64-x86-64)
 
-SECTIONS{
-    . = 0x00100000;
+ENTRY(_start)
 
-    .text :{
-        *(.text)
+phys = 0x100000;
+virt = 0x100000;
+
+SECTIONS
+{
+    .text virt : AT(phys)
+    {
+	code = .;
+	*(.text)
+	*(.rodata*)
+	. = ALIGN(4096);
     }
 
-    .rodata ALIGN (0x1000) : {
-        *(.rodata)
+    .data : AT(phys + data - code)
+    {
+	data = .;
+	*(.data)
+	. = ALIGN(4096);
     }
 
-    .data ALIGN (0x1000) : {
-        *(.data)
+    .bss : AT(phys + bss - code)
+    {
+	bss = .;
+	*(.bss)
+	*(COMMON)
     }
 
-    .bss : {
-        sbss = .;
-        *(COMMON)
-        *(.bss)
-        ebss = .;
-    }
+    end = .;
 }
+
 
 
