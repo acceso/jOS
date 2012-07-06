@@ -5,6 +5,8 @@
 
 void puts(const char *s);
 void cls(void);
+void printf(const char *fmt, ...);
+
 
 
 #endif /* VGA_H */

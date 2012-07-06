@@ -1,6 +1,6 @@
 
 
-OUTPUT_FORMAT(elf64-x86-64)
+/* OUTPUT_FORMAT(elf64-x86-64) */
 
 ENTRY(_start)
 
@@ -12,6 +12,7 @@ SECTIONS
     .text virt : AT(phys)
     {
 	code = .;
+	*(.mboot)
 	*(.text)
 	*(.rodata*)
 	. = ALIGN(4096);
@@ -31,7 +32,9 @@ SECTIONS
 	*(COMMON)
     }
 
-    end = .;
+    /* end of kernel :) */
+    eok = .;
+    /*. = ASSERT(eok <= 0x123456, "Too big!") */
 }
 
 
