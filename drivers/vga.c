@@ -8,7 +8,7 @@
  * Ad-hoc vga driver
  */
 
-#include <types.h>
+#include <inc/types.h>
 #include "vga.h"
 
 
@@ -101,7 +101,7 @@ cls(void)
 
 
 
-static void
+void
 vga_writechar (const u8 c)
 {
 	u16 *p = addrfrompos(line, col);
@@ -150,115 +150,6 @@ vga_writechar (const u8 c)
 	}
 
 	return;
-
-}
-
-
-
-
-void
-puts(const char *s)
-{
-	while (*s)
-		vga_writechar(*s++);
-}
-
-
-
-
-/* TODO: reemplazar esta función */
-static void
-itoa (char *buf, int base, int d)
-{
-	char *p = buf;
-	char *p1, *p2;
-	unsigned long ud = d;
-	int divisor = 10;
-
-	/* If %d is specified and D is minus, put `-' in the head. */
-	if (base == 'd' && d < 0)
-	{
-		*p++ = '-';
-		buf++;
-		ud = -d;
-	}
-	else if (base == 'x')
-		divisor = 16;
-
-	/* Divide UD by DIVISOR until UD == 0. */
-	do
-	{
-		int remainder = ud % divisor;
-
-		*p++ = (remainder < 10) ? remainder + '0' : remainder + 'a' - 10;
-	}
-	while (ud /= divisor);
-
-	/* Terminate BUF. */
-	*p = 0;
-
-	/* Reverse BUF. */
-	p1 = buf;
-	p2 = p - 1;
-	while (p1 < p2)
-	{
-		char tmp = *p1;
-		*p1 = *p2;
-		*p2 = tmp;
-		p1++;
-		p2--;
-	}
-}
-
-
-
-
-
-/* TODO: reemplazar esta función también */
-void
-printf(const char *fmt, ...)
-{
-	char **arg = (char **) &fmt;
-	int c;
-	char buf[20];
-	char *p;
-
-	arg++;
-
-	while ((c = *fmt++) != 0)
-	{
-		if (c != '%') {
-			vga_writechar (c);
-			continue;
-		}
-
-		c = *fmt++;
-		switch (c)
-		{
-			case 'd':
-			case 'u':
-			case 'x':
-				itoa (buf, c, *((int *) arg++));
-				p = buf;
-				goto string;
-				break;
-
-			case 's':
-				p = *arg++;
-				if (! p)
-					p = "(null)";
-
-string:
-				while (*p)
-					vga_writechar (*p++);
-				break;
-
-			default:
-				vga_writechar (*((int *) arg++));
-				break;
-		}
-	}
-
 
 }
 

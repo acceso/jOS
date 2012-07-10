@@ -31,6 +31,7 @@ typedef unsigned long int u64;
 
 typedef u64 size_t;
 
+#define NULL 0x0
 
 #endif /* TYPES_H */
 

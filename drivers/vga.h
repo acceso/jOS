@@ -3,9 +3,12 @@
 #define VGA_H
 
 
-void puts(const char *s);
+#include <inc/types.h>
+
+
 void cls(void);
-void printf(const char *fmt, ...);
+
+void vga_writechar (const u8 c);
 
 
 

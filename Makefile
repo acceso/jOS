@@ -4,14 +4,14 @@
 arch=x86-64
 
 
-SOURCES = boot/boot64.o \
-	  boot/kstart.o \
-	  lib/lib.o \
-	  drivers/vga.o
+SOURCES = boot/boot64.o boot/kstart.o \
+	  lib/lib.o lib/io.o \
+	  drivers/vga.o \
+	  boot/traps.o
 
 CFLAGS = -ffreestanding -nostdlib -nostdinc -fno-builtin -fno-stack-protector \
 	-Wall -pedantic -ggdb -std=gnu99 -iquote . -O2 \
-	-nostartfiles -nodefaultlibs
+	-nostartfiles -nodefaultlibs -pipe
 LDFLAGS=-N -T linker.ld # -M
 ASFLAGS=
 
@@ -28,13 +28,13 @@ endif
 
 
 all: $(SOURCES)
-	gcc -c -m32 -o boot/boot32.o boot/boot.S
-	objcopy -O elf64-x86-64 boot/boot32.o boot/boot.o
-	ld $(LDFLAGS) -o jOS $(SOURCES) boot/boot.o 
+	gcc -c -m32 -o boot/boot32_32.o boot/boot32.S
+	objcopy -O elf64-x86-64 boot/boot32_32.o boot/boot32.o
+	ld $(LDFLAGS) -o jOS $(SOURCES) boot/boot32.o 
 	/home/jose/wip/jOS/run.sh
 
 clean:
-	rm -f *.o jOS boot/*.o kernel/*.o lib/*.o
+	rm -f *.o jOS */*.o
 
 
 
