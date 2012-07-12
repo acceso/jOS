@@ -2,7 +2,7 @@
 #include <drivers/vga.h>
 #include <inc/types.h>
 
-#include "io.h"
+#include "stdio.h"
 
 
 
@@ -79,9 +79,26 @@ kprintf (const char *fmt, ...)
 			vga_writechar ((char) va_arg (ap, int));
 			break;
 		case 'd':
+		case 'i':
+			{
+			char s[22];
+			itoa (va_arg (ap, int), s, 10);
+			puts (s);
+			break;
+			}
+		case 'l':
 			{
 			char s[22];
 			itoa (va_arg (ap, long int), s, 10);
+			puts (s);
+			break;
+			}
+		case 'p':
+			{
+			char s[24];
+			s[0] = '0';
+			s[1] = 'x';
+			itoa (va_arg (ap, long int), &s[2], 16);
 			puts (s);
 			break;
 			}
@@ -91,7 +108,7 @@ kprintf (const char *fmt, ...)
 		case 'x':
 			{
 			char s[22];
-			itoa (va_arg (ap, int), s, 16);
+			itoa (va_arg (ap, long int), s, 16);
 			puts (s);
 			break;
 			}
@@ -102,6 +119,26 @@ kprintf (const char *fmt, ...)
 
 	va_end (ap);
 }
+
+
+void outb(u16 port, u8 val)
+{
+	asm volatile ("outb %1, %0" : : "dN" (port), "a" (val));
+}
+
+u8 inb(u16 port)
+{
+	u8 ret;
+	asm volatile("inb %1, %0" : "=a" (ret) : "dN" (port));
+	return ret;
+}
+
+u16 inw(u16 port)
+{
+	u16 ret;
+	asm volatile ("inw %1, %0" : "=a" (ret) : "dN" (port));
+	return ret;
+} 
 
 
 

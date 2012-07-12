@@ -9,6 +9,7 @@
  */
 
 #include <inc/types.h>
+#include <lib/stdio.h>
 #include "vga.h"
 
 
@@ -49,9 +50,21 @@ static u8 c_front = C_LIGHT_GREY;
 static u8 c_back = C_BLACK;
 
 
+static inline move_cursor (void)
+{
+	u16 loc = line * 80 + col;
+
+	outb (0x3D4, 14); /* we are setting the high byte */
+	outb (0x3D5, loc >> 8); /* send it */
+
+	outb (0x3D4, 15); /* now the low byte */
+	outb (0x3D5, loc);
+
+}
+
 
 static inline u16 *
-addrfrompos(u8 l, u8 c)
+addrfrompos (u8 l, u8 c)
 {
 	return (VGA_BASE + l * 80 + c);
 }
@@ -59,9 +72,9 @@ addrfrompos(u8 l, u8 c)
 
 
 static void
-scroll(void)
+scroll (void)
 {
-	*(u16 *)VGA_BASE = VC('c', c_front, c_back);
+	*(u16 *)VGA_BASE = VC ('c', c_front, c_back);
 	u32 *p = (u32 *)VGA_BASE;
 
 	do {
@@ -69,13 +82,14 @@ scroll(void)
 	} while (++p < (u32 *)VGA_END);
 
 	p = (u32 *)(VGA_END - NCOL / 2);
-	*p = VC('-', c_front, c_back);
+	*p = VC ('-', c_front, c_back);
 
 	while (p < (u32 *)(VGA_END - 2))
-		*p++ = (VC(' ', c_front, c_back) << 16)
-			| VC(' ', c_front, c_back);
+		*p++ = (VC (' ', c_front, c_back) << 16)
+			| VC (' ', c_front, c_back);
 
 	line--;
+	move_cursor ();
 
 	return;
 }
@@ -87,14 +101,15 @@ void
 cls(void)
 {
 	u32 *p = (u32 *)VGA_BASE;
-	u32 blank = (VC(' ', c_front, c_back) << 16)
-		| VC(' ', c_front, c_back);
+	u32 blank = (VC (' ', c_front, c_back) << 16)
+		| VC (' ', c_front, c_back);
 
 	while (p < (u32 *)VGA_END - 2)
 		*p++ = blank;
 
 	col = 0;
 	line = 0;
+	move_cursor ();
 
 	return;
 }
@@ -104,41 +119,41 @@ cls(void)
 void
 vga_writechar (const u8 c)
 {
-	u16 *p = addrfrompos(line, col);
+	u16 *p = addrfrompos (line, col);
 
 	if (c == '\b')  {
 		if (col == 0)
 			return;
 		
-		*p = VC(' ', c_front, c_back);
+		*p = VC (' ', c_front, c_back);
 		col--;
 	} else if (c == '\t') {
 		if (col >= NCOL - TAB) {
-			u16 *p2 = addrfrompos(++line, col = 0);
+			u16 *p2 = addrfrompos (++line, col = 0);
 			
 			if (line >= NLIN)
 				scroll();
 
 			while (p < p2)
-				*p++ = VC(' ', c_front, c_back);
+				*p++ = VC (' ', c_front, c_back);
 
 			return;
 		}
 
 		do {
-			*p++ = VC(' ', c_front, c_back);
+			*p++ = VC (' ', c_front, c_back);
 		} while (++col % TAB != 0);
 	} else if (c == '\n') {
-		u16 *p2 = addrfrompos(++line, col = 0);
+		u16 *p2 = addrfrompos (++line, col = 0);
 
 		if (line >= NLIN)
 			scroll();
 
 		while (p < p2)
-			*p++ = VC(' ', c_front, c_back);
+			*p++ = VC (' ', c_front, c_back);
 
-	} else if (c >= ' ') { /* just if is printable */
-		*p = VC(c, c_front, c_back);
+	} else if (c >= ' ') { /* it is printable */
+		*p = VC (c, c_front, c_back);
 		col++;
 
 		if (col >= NCOL - 1) {
@@ -148,6 +163,8 @@ vga_writechar (const u8 c)
 			line++;
 		}
 	}
+
+	move_cursor ();
 
 	return;
 

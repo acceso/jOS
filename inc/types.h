@@ -5,7 +5,7 @@
 
 #if ARCH == X86
 
-#define ARCHWIDTH 32
+#define MWORD 4
 
 typedef unsigned char u8;
 typedef unsigned short int u16;
@@ -16,7 +16,7 @@ typedef unsigned long long int u64;
 
 #elif ARCH == X86-64
 
-#define ARCHWIDTH 64
+#define MWORD 8
 
 typedef unsigned char u8;
 typedef unsigned short int u16;

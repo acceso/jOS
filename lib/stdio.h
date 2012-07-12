@@ -1,6 +1,6 @@
 
-#ifndef IO_H
-#define IO_H
+#ifndef STDIO_H
+#define STDIO_H
 
 
 #include <inc/types.h>
@@ -14,12 +14,17 @@ typedef __builtin_va_list va_list;
 
 
 
+
+
 void puts(const char *s);
 
 void kprintf(const char *fmt, ...);
 
+void outb(u16 port, u8 val);
+u8 inb(u16 port);
+u16 inw(u16 port);
 
 
 
-#endif /* IO_H */
+#endif /* STDIO_H */
 

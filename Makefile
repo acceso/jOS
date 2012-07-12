@@ -3,11 +3,11 @@
 #arch=x86
 arch=x86-64
 
-
-SOURCES = boot/boot64.o boot/kstart.o \
-	  lib/lib.o lib/io.o \
+SOURCES = boot/boot64.o \
+	  kernel/mm.o kernel/mm_page_frames.o kernel/main.o \
+	  lib/string.o lib/stdio.o \
 	  drivers/vga.o \
-	  boot/traps.o
+	  kernel/traps.o
 
 CFLAGS = -ffreestanding -nostdlib -nostdinc -fno-builtin -fno-stack-protector \
 	-Wall -pedantic -ggdb -std=gnu99 -iquote . -O2 \

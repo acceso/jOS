@@ -11,30 +11,40 @@ SECTIONS
 {
     .text virt : AT(phys)
     {
-	code = .;
+	text = .;
 	*(.mboot)
 	*(.text)
 	*(.rodata*)
 	. = ALIGN(4096);
     }
 
-    .data : AT(phys + data - code)
+    .data : AT(phys + data - text)
     {
 	data = .;
 	*(.data)
 	. = ALIGN(4096);
     }
 
-    .bss : AT(phys + bss - code)
+    .bss : AT(phys + bss - text)
     {
 	bss = .;
 	*(.bss)
 	*(COMMON)
     }
 
+    /* this makes room for the kernel to use */
+    .bss2 : AT(phys + bss2 - text)
+    {
+	bss2 = .;
+	FILL(0)
+	. += 0x200000;
+    }
+
+
     /* end of kernel :) */
     eok = .;
-    /*. = ASSERT(eok <= 0x123456, "Too big!") */
+
+    . = ASSERT(eok <= 0x400000, "linker.ld: Kernel too big!!!");
 }
 
 

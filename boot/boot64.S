@@ -9,9 +9,7 @@ start64:
 
 	pushq $0x0;
 
-	movq %rbx, %rdi
-
-	call kstart
+	call kmain
 
 1:
 	hlt

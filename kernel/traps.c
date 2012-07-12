@@ -1,10 +1,10 @@
 
 
+#include <inc/boot.h>
 #include <inc/types.h>
 #include <drivers/vga.h>
-#include <lib/io.h>
+#include <lib/stdio.h>
 
-#include "boot.h"
 #include "traps.h"
 
 static struct {
@@ -18,22 +18,7 @@ static struct {
 } __attribute__((__packed__, aligned(8))) idtentry[256];
 
 
-static void 
-set_idt_reg (u64 base, u16 limit)
-{
-	struct {
-		u16 limit;
-		u64 base;
-	} __attribute__((__packed__)) idt_reg;
-
-	idt_reg.base = base;
-	idt_reg.limit = limit;
-
-	asm volatile("lidt %0"::"m" (idt_reg));
-}
-
-
-struct intr_frame {
+static struct intr_frame {
 	u64 rdi;
 	u64 rsi;
 	u64 rbp;
@@ -51,42 +36,26 @@ struct intr_frame {
 };
 
 
+static void 
+set_idt_reg (u64 base, u16 limit)
+{
+	struct {
+		u16 limit;
+		u64 base;
+	} __attribute__((__packed__)) idt_reg;
+
+	idt_reg.base = base;
+	idt_reg.limit = limit;
+
+	asm volatile("lidt %0"::"m" (idt_reg));
+}
+
+
 void
 isr_handler (struct intr_frame r)
 {
 	kprintf ("Excepcion %d!\n", r.intnum);
 }
-
-
-#define ISR(_n)						\
-__attribute__ ((regparm (0), aligned(8))) void do_isr ## _n (void) 	\
-{							\
-asm volatile (						\
-	"cli\n\t"					\
-	"pushq $0\n\t"					\
-	"pushq $" #_n "\n\t"				\
-	pushaq()					\
-	"call isr_handler\n\t"				\
-	popaq()						\
-	"addq $16, %rsp\n\t"				\
-	"sti\n\t"					\
-	"iretq\n");					\
-}
-
-#define ISR_errcode(_n)					\
-__attribute__ ((regparm (0), aligned(8))) void do_isr ## _n (void) 	\
-{							\
-asm volatile(						\
-	"cli\n\t"					\
-	"pushq $" #_n "\n\t"				\
-	pushaq()					\
-	"call isr_handler\n\t"				\
-	popaq()						\
-	"addq $16, %rsp\n\t"				\
-	"sti\n\t"					\
-	"iretq\n");					\
-}
-
 
 
 
@@ -98,13 +67,13 @@ ISR(4)
 ISR(5)
 ISR(6)
 ISR(7)
-ISR_errcode(8)
+ISR(8)
 ISR(9)
-ISR_errcode(10)
-ISR_errcode(11)
-ISR_errcode(12)
-ISR_errcode(13)
-ISR_errcode(14)
+ISR(10)
+ISR(11)
+ISR(12)
+ISR(13)
+ISR(14)
 ISR(15)
 ISR(16)
 ISR(17)
@@ -125,7 +94,7 @@ ISR(31)
 
 
 
-static void
+void
 idt_set_gate (u8 num, u64 addr, u16 selector, u16 flags)
 {
 	idtentry[num].offset1 = addr & 0xFFFF;

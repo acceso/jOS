@@ -4,7 +4,10 @@
  */
 
 	.set MB_MAGIC, 0x1BADB002
-	.set MB_FLAGS, 1<<0 | 1<<1 # page align | memory info
+	.set MB_FLAGS, \
+		1<<0 /* page align */ |\
+		1<<1 /* memory info */ # |\ looking at the source, its broken:
+		# 1<<6 /* memory map */
 
 	.section .mboot
 
@@ -19,9 +22,19 @@ mb_header:
 	.long -(MB_MAGIC + MB_FLAGS)
 
 
+	/* Space for the multiboot information pointer */
+	.global mbi32
+mbi32:
+	.long 0x0
+
+
+
 	.global _start
 _start:
 	cli
+
+	/* Save multiboot information */
+	movl %ebx, mbi32
 
 	/* Make sure CR0.PG = 0. */
 	mov %cr0, %eax
@@ -37,22 +50,25 @@ _start:
 	movw %ax, %fs
 	movw %ax, %gs
 
-	/* TODO: mapear 1 hugepage :) */
+
+/* With just one page would be enough:
+	movl $pdp + 0x7, pml4
+	movl $0x87, pdp
+   I map a full pml4 entry because the memory used is the same (except for the instructions...)
+*/
+
 	/* Page tables */
 	movl $pdp + 0x7, pml4
-	movl $pd + 0x7, pdp
-	movl $pt + 0x7, pd
 
 	/* Map 512 entries */
-	movl $pt, %edi
-	movl $0x7, %eax # flags
+	movl $pdp, %edi
+	movl $0x87, %eax	# flags
 	movl $512, %ecx
 1:
 	movl %eax, (%edi)
-	addl $0x1000, %eax # each page maps 4kB
-	addl $8, %edi # next entry
+	addl $0x1000, %eax	# each page maps 4kB
+	addl $8, %edi		# next entry
 	loop 1b
-
 
 	movl $pml4, %eax
 	movl %eax, %cr3
@@ -109,8 +125,6 @@ gdt_end:
 
 	.lcomm pml4, 0x1000
 	.lcomm pdp, 0x1000
-	.lcomm pd, 0x1000
-	.lcomm pt, 0x1000
 
 
 
