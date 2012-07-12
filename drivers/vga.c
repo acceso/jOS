@@ -36,8 +36,9 @@
 #define VC(_c, _fg, _bg)        ((_c) | (((_fg) | (_bg) << 4) << 8))
 
 
-#define VGA_BASE ((u16 *)0xB8000L)
-#define VGA_END  ((u16 *)0xb8ff0L)
+#define VGA_BASE ((u16 *)__va(0xb8000L))
+#define VGA_END  ((u16 *)__va(0xb8ff0L))
+
 
 #define NLIN 25
 #define NCOL 80
@@ -50,7 +51,7 @@ static u8 c_front = C_LIGHT_GREY;
 static u8 c_back = C_BLACK;
 
 
-static inline move_cursor (void)
+static inline void move_cursor (void)
 {
 	u16 loc = line * 80 + col;
 

@@ -6,5 +6,10 @@
 #define K_DS 0x10
 
 
+#ifndef _ASM /* Not for assembly */
+#endif /* _ASM */
+
+
+
 #endif /* BOOT_H */
 

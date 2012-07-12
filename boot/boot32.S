@@ -3,11 +3,29 @@
  *
  */
 
+
+#include "../inc/boot.h"
+
+
+/* Maps a full pdpe with 1GB pages starting from (base << 30 & flags) */
+.macro map_pdpe pdpe_ptr, base_and_flags
+	movl \pdpe_ptr, %edi
+	movl \base_and_flags, %eax
+	movl $512, %ecx
+1:
+	movl %eax, (%edi)
+	addl $0x40000000, %eax	# each page maps 1G
+	addl $8, %edi		# next entry, 8 bits
+	loop 1b
+.endm
+
+
+
 	.set MB_MAGIC, 0x1BADB002
 	.set MB_FLAGS, \
 		1<<0 /* page align */ |\
-		1<<1 /* memory info */ # |\ looking at the source, its broken:
-		# 1<<6 /* memory map */
+		1<<1 /* memory info */ # |\
+		# 1<<5 /* memory map */
 
 	.section .mboot
 
@@ -44,31 +62,21 @@ _start:
 	/* Segmentation */
 	lgdt gdt_ptr
 
-	movw $0x10, %ax
+	movw $K_DS, %ax
 	movw %ax, %ds
 	movw %ax, %es
 	movw %ax, %fs
 	movw %ax, %gs
 
 
-/* With just one page would be enough:
-	movl $pdp + 0x7, pml4
-	movl $0x87, pdp
-   I map a full pml4 entry because the memory used is the same (except for the instructions...)
-*/
+	/* Identity mapping for userspace */
+	movl $pdpu + 0x7, pml4
+	map_pdpe $pdpu, $0x87
 
-	/* Page tables */
-	movl $pdp + 0x7, pml4
+	/* Identity mapping for the kernel */
+	movl $pdpk + 0x7, pml4 + 0x800
+	map_pdpe $pdpk, $0x87
 
-	/* Map 512 entries */
-	movl $pdp, %edi
-	movl $0x87, %eax	# flags
-	movl $512, %ecx
-1:
-	movl %eax, (%edi)
-	addl $0x1000, %eax	# each page maps 4kB
-	addl $8, %edi		# next entry
-	loop 1b
 
 	movl $pml4, %eax
 	movl %eax, %cr3
@@ -91,7 +99,7 @@ _start:
 	mov %eax, %cr0
 
 	/* jump to a 64 bit segment */
-	ljmp $0x8, $start64
+	ljmp $K_CS, $start64
 
 /* should be unreachable: */
 1:
@@ -124,7 +132,8 @@ gdt_end:
 	.align 4096
 
 	.lcomm pml4, 0x1000
-	.lcomm pdp, 0x1000
+	.lcomm pdpu, 0x1000
+	.lcomm pdpk, 0x1000
 
 
 

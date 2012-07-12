@@ -1,31 +1,43 @@
 
-
-/* OUTPUT_FORMAT(elf64-x86-64) */
+/* OUTPUT_ARCH(i386:x86-64) */
 
 ENTRY(_start)
 
 phys = 0x100000;
-virt = 0x100000;
+
 
 SECTIONS
 {
-    .text virt : AT(phys)
+    . = phys;
+
+    .mboot : AT(ADDR(.mboot))
+    {
+	mboot = .;
+	*(.mboot)
+	boot/boot*.o(.text)
+	. = ALIGN(4096);
+	boot/boot*.o(.bss)
+    }
+
+    . += page_offset;
+    . = ALIGN(4096);
+
+    .text : AT(ADDR(.text) - page_offset)
     {
 	text = .;
-	*(.mboot)
 	*(.text)
 	*(.rodata*)
 	. = ALIGN(4096);
     }
 
-    .data : AT(phys + data - text)
+    .data : AT(ADDR(.data) - page_offset)
     {
 	data = .;
 	*(.data)
 	. = ALIGN(4096);
     }
 
-    .bss : AT(phys + bss - text)
+    .bss : AT(ADDR(.bss) - page_offset)
     {
 	bss = .;
 	*(.bss)
@@ -33,7 +45,7 @@ SECTIONS
     }
 
     /* this makes room for the kernel to use */
-    .bss2 : AT(phys + bss2 - text)
+    .bss2 : AT(ADDR(.bss2) - page_offset)
     {
 	bss2 = .;
 	FILL(0)
@@ -44,7 +56,7 @@ SECTIONS
     /* end of kernel :) */
     eok = .;
 
-    . = ASSERT(eok <= 0x400000, "linker.ld: Kernel too big!!!");
+    /*. = ASSERT(eok <= 0x400000, "linker.ld: Kernel too big!!!");*/
 }
 
 

@@ -1,19 +1,24 @@
 
+
 	.code64
 
 	.text
 
-	.global start64
-start64:
-	movq $(stack + STACKSIZE), %rsp
+	movabsq $(stack + STACKSIZE), %rsp
 
 	pushq $0x0;
+	pushq $0x0;
 
-	call kmain
+	.global start64
+start64:
+	/* movabsq forces a 8-byte displacement */
+	movabsq $kmain, %rax
+	callq *%rax
 
 1:
 	hlt
 	jmp 1b
+
 
 	.bss
 

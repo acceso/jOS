@@ -5,7 +5,8 @@
 
 
 
-#define PF_COUNTMASK	0XFF
+#define PG_COUNT	0XFF
+#define PG_LOCKED	(0x1 << 8)
 
 
 
