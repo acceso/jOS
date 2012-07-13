@@ -1,14 +1,15 @@
 
-/* OUTPUT_ARCH(i386:x86-64) */
+OUTPUT_ARCH(i386:x86-64)
 
 ENTRY(_start)
 
-phys = 0x100000;
+/* start of kernel :). Beware: this is physical address but eok is not! */
+sok = 0x100000;
 
 
 SECTIONS
 {
-    . = phys;
+    . = sok;
 
     .mboot : AT(ADDR(.mboot))
     {
@@ -42,14 +43,6 @@ SECTIONS
 	bss = .;
 	*(.bss)
 	*(COMMON)
-    }
-
-    /* this makes room for the kernel to use */
-    .bss2 : AT(ADDR(.bss2) - page_offset)
-    {
-	bss2 = .;
-	FILL(0)
-	. += 0x200000;
     }
 
 

@@ -24,8 +24,7 @@
 	.set MB_MAGIC, 0x1BADB002
 	.set MB_FLAGS, \
 		1<<0 /* page align */ |\
-		1<<1 /* memory info */ # |\
-		# 1<<5 /* memory map */
+		1<<1 /* memory info */
 
 	.section .mboot
 

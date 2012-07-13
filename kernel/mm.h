@@ -6,37 +6,22 @@
 
 #include <inc/types.h>
 
-/*
- * The multiboot.h version that comes along Grub is full of "unsigned long" definitions.
- * They are 4 bits long in x32 but 8 in x64 !!
- */
 
-typedef struct multiboot_info64 {
-	u32 flags;
-	u32 mem_lower;
-	u32 mem_upper;
-	u32 boot_device;
-	u32 cmdline;
-	u32 mods_count;
-	u32 mods_addr;
-	u64 a, b;
-	u32 mmap_length;
-	u32 mmap_addr;
-} multiboot_info64_t;
+#define PAGE_ALIGN      ~(0x200000 - 1)
+#define PAGE_SIZE       0x200000
+#define PAGE_OFFSET     21
+
+#define PAGE_ALIGNED(_a) (((u64)(_a) & PAGE_ALIGN) == (u64)(_a))
 
 
-typedef struct multiboot_memory_map64 {
-	u32 size;
-	//unsigned long base_addr_low;
-	//unsigned long base_addr_high;
-	u64 base_addr;
-	//unsigned long length_low;
-	//unsigned long length_high;
-	u64 length;
-	u32 type;
-} multiboot_memory_map64_t;
 
-
+/* I get 2 ranges on my bochs emulator, as I can't ask for memory yet, 
+ * I reserv more elements. */
+#define MMAP_ARRAY_MAX 10
+struct _usablemem {
+	u64 *addr;
+	u64 len;
+};
 
 
 

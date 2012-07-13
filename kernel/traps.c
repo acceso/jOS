@@ -7,6 +7,7 @@
 
 #include "traps.h"
 
+
 static struct {
 	u16 offset1;
 	u16 selector;
@@ -18,7 +19,7 @@ static struct {
 } __attribute__((__packed__, aligned(8))) idtentry[256];
 
 
-static struct intr_frame {
+struct intr_frame {
 	u64 rdi;
 	u64 rsi;
 	u64 rbp;
@@ -107,6 +108,8 @@ idt_set_gate (u8 num, u64 addr, u16 selector, u16 flags)
 	idtentry[num].ist = 0;
 
 }
+
+
 
 void
 init_exceptions (void)

@@ -6,14 +6,13 @@
 
 
 
-
-
 void
-puts(const char *s)
+puts (const char *s)
 {
 	while (*s)
 		vga_writechar(*s++);
 }
+
 
 
 void
@@ -46,8 +45,6 @@ itoa (u64 n, char *s, u8 base)
 	}
 
 }
-
-
 
 
 
@@ -121,19 +118,27 @@ kprintf (const char *fmt, ...)
 }
 
 
-void outb(u16 port, u8 val)
+
+void
+outb (u16 port, u8 val)
 {
 	asm volatile ("outb %1, %0" : : "dN" (port), "a" (val));
 }
 
-u8 inb(u16 port)
+
+
+u8
+inb (u16 port)
 {
 	u8 ret;
 	asm volatile("inb %1, %0" : "=a" (ret) : "dN" (port));
 	return ret;
 }
 
-u16 inw(u16 port)
+
+
+u16
+inw(u16 port)
 {
 	u16 ret;
 	asm volatile ("inw %1, %0" : "=a" (ret) : "dN" (port));

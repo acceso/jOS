@@ -6,8 +6,8 @@ PAGE_OFFSET = 0xffff800000000000
 
 
 SOURCES = boot/boot64.o \
-	  kernel/mm.o kernel/mm_page_frames.o kernel/main.o \
-	  lib/string.o lib/stdio.o lib/list.o \
+	  kernel/mm.o kernel/mm_phys.o kernel/mm_kmalloc.o kernel/main.o \
+	  lib/bitset.o lib/kernel.o lib/string.o lib/stdio.o lib/list.o \
 	  drivers/vga.o \
 	  kernel/traps.o
 

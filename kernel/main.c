@@ -1,6 +1,6 @@
 
 
-#define VERSION "0.0.0.4"
+#define VERSION "0.0.0.6"
 
 
 #include <inc/types.h>
@@ -9,11 +9,6 @@
 #include <lib/stdio.h>
 
 #include "mm.h"
-
-/*
-#include "pic.h"
-#include "timer.h"
-*/
 
 
 
@@ -42,5 +37,6 @@ kmain (void)
 
 	return 0;
 }
+
 
 
