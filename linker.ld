@@ -17,6 +17,7 @@ SECTIONS
 	*(.mboot)
 	boot/boot*.o(.text)
 	. = ALIGN(4096);
+	boot/boot*.o(.data)
 	boot/boot*.o(.bss)
     }
 
@@ -35,6 +36,13 @@ SECTIONS
     {
 	data = .;
 	*(.data)
+	. = ALIGN(4096);
+    }
+
+    .ehframe : AT(ADDR(.ehframe) - page_offset)
+    {
+	ehframe = .;
+	*(.ehframe)
 	. = ALIGN(4096);
     }
 

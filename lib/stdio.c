@@ -1,6 +1,7 @@
 
 #include <drivers/vga.h>
 #include <inc/types.h>
+#include <lib/string.h>
 
 #include "stdio.h"
 
@@ -10,16 +11,16 @@ void
 puts (const char *s)
 {
 	while (*s)
-		vga_writechar(*s++);
+		vga_writechar (*s++);
 }
 
 
 
 void
-itoa (u64 n, char *s, u8 base)
+itoa (s64 n, char *s, u8 base)
 {
 	char *p;
-	u64 pn = n;
+	s64 pn = n;
 
 	if (n < 0) {
 		*s++ = '-';
@@ -46,13 +47,78 @@ itoa (u64 n, char *s, u8 base)
 
 }
 
+void
+itoau (u64 n, char *s, u8 base)
+{
+	char *p;
+	s64 pn = n;
+
+	p = s;
+
+	do {
+		int rem = pn % base;
+
+		*p++ = (rem < 10) ? rem + '0' : rem + 'a' - 10 ;
+
+	} while (pn /= base);
+
+	*p-- = '\0';
+
+	while (p > s) {
+		char tmp = *s;
+
+		*s++ = *p;
+		*p-- = tmp;
+	}
+
+}
 
 
+
+
+
+u64
+atoi (const char *s)
+{
+	u64 n = 0;
+
+	while (is_digit (*s++)) {
+		n *= 10;
+		n += *(s - 1) - '0';
+	}
+
+	return n;
+}
+
+
+
+#define KP_LEFTJUST	1
+#define KP_SIGN		2
+#define KP_ZEROPAD	4
+
+#define KP_LONG		8
+#define KP_LONGLONG	16
+
+#define KP_DEFWIDTH	16
+
+
+char buf[2048];
+
+
+
+/* 
+ * Spec: http://www.opengroup.org/onlinepubs/000095399/functions/printf.html
+ * partly implemented.
+ * TODO: not bound checking for "buf"!
+ */
 void
 kprintf (const char *fmt, ...)
 {
 	const char *p = fmt;
+	char *b = buf;
 	va_list ap;
+	u32 flags;
+	u8 width;
 
 	if (p == NULL)
 		return;
@@ -60,59 +126,170 @@ kprintf (const char *fmt, ...)
 	va_start (ap, fmt);
 
 	do {
-		if (*p == '\0')
+		if (*p == '\0') {
+			*b++ = '\0';
 			break;
+		}
 
 		if (*p++ != '%') {
-			vga_writechar (*(p - 1));
+			*b++ = *(p - 1);
 			continue;
 		}
 
+		if (*p == '%') {
+			*b++ = *p++;
+			continue;
+		}
+
+
+		flags = 0;
+		
+		do {
+			if (*p == '-')
+				flags |= KP_LEFTJUST;
+			else if (*p == '+')
+				flags |= KP_SIGN;
+			/* Too mucho f a hassle... */
+			/*else if (*p == '0')
+				flags |= KP_ZEROPAD; */
+			else
+				break;
+
+			p++;
+
+		} while (1);
+
+
+		if (is_digit (*p))
+			width = atoi (p);
+		else
+			width = 0;
+
+
+		while (is_digit (*p))
+			p++;
+
+
+		/* no precision because no floating point yet */
+
+
+		if (*p == 'l') {
+			p++;
+			if (*p == 'l') {
+				flags |= KP_LONGLONG;
+				p++;
+			} else
+				flags |= KP_LONG;
+		}
+
+
 		switch (*p) {
-		case '%':
-			vga_writechar ('%');
-			break;
 		case 'c':
-			vga_writechar ((char) va_arg (ap, int));
+			*b++ = ((char) va_arg (ap, int));
 			break;
 		case 'd':
 		case 'i':
-			{
-			char s[22];
-			itoa (va_arg (ap, int), s, 10);
-			puts (s);
-			break;
-			}
-		case 'l':
-			{
-			char s[22];
-			itoa (va_arg (ap, long int), s, 10);
-			puts (s);
-			break;
-			}
 		case 'p':
-			{
-			char s[24];
-			s[0] = '0';
-			s[1] = 'x';
-			itoa (va_arg (ap, long int), &s[2], 16);
-			puts (s);
-			break;
-			}
-		case 's':
-			puts (va_arg (ap, char *));
-			break;
+		case 'u':
 		case 'x':
 			{
 			char s[22];
-			itoa (va_arg (ap, long int), s, 16);
-			puts (s);
-			break;
+			char *ps = s;
+			s16 l;
+			char c;
+			u8 base = 10;
+
+			if (*p == 'x' || *p == 'p')
+				base = 16;
+
+			/* First, let's get a string representation: */
+			if (*p == 'u') {
+				if (flags & KP_LONG)
+					itoau (va_arg (ap, unsigned long int), s, base);
+				else if (flags & KP_LONGLONG)
+					itoau (va_arg (ap, unsigned long long int), s, base);
+				else
+					itoau (va_arg (ap, unsigned int), s, base);
+			} else {
+				if (flags & KP_LONG)
+					itoa (va_arg (ap, long int), s, base);
+				else if (flags & KP_LONGLONG)
+					itoa (va_arg (ap, long long int), s, base);
+				else
+					itoa (va_arg (ap, int), s, base);
 			}
+
+
+			/* The lenght of the string */
+			l = strlen (s);
+			/* Plus one if the positive sign is wanted */
+			if (flags & KP_SIGN && s[0] != '-')
+				l++;
+			/* ... plus two for the string: '0x' */
+			if (*p == 'p')
+				l += 2;
+
+
+			/* The filling character: */
+			if (flags & KP_ZEROPAD)
+				c = 0;
+			else
+				c = ' ';
+
+
+			/* If not left adjusted and the width is greater than the 
+			 * generated string: */
+			if ((flags & KP_LEFTJUST) == 0 && width - l > 0) {
+				l = width - l;
+				while (l--)
+					*b++ = c;
+			}
+
+
+			/* The sign: */
+			if (s[0] == '-') {
+				*b++ = '-';
+				ps++;
+			} else if (flags & KP_SIGN)
+				*b++ = '+';
+
+			if (*p == 'p') {
+				*b++ = '0';
+				*b++ = 'x';
+			}
+
+			/* Copy the string */
+			while (*ps != '\0')
+				*b++ = *ps++;
+
+
+			/* Fill the right side if specified */
+			if ((flags & KP_LEFTJUST) && width - l > 0) {
+				l = width - l;
+				while (l--)
+					*b++ = c;
+			}
+
+			}
+			break;
+		case 's':
+			{
+			char *s;
+
+			s = va_arg (ap, char *);
+			while (*s)
+				*b++ = *s++;
+
+			}
+			break;
 		}
 
 		p++;
 	} while (1);
+
+
+	puts (buf);
+
 
 	va_end (ap);
 }

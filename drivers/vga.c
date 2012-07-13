@@ -36,8 +36,8 @@
 #define VC(_c, _fg, _bg)        ((_c) | (((_fg) | (_bg) << 4) << 8))
 
 
-#define VGA_BASE ((u16 *)__va(0xb8000L))
-#define VGA_END  ((u16 *)__va(0xb8ff0L))
+#define VGA_BASE ((u16 *)__va(0xb8000))
+#define VGA_END  ((u16 *)__va(0xb8fa0))
 
 
 #define NLIN 25
@@ -99,13 +99,13 @@ scroll (void)
 
 
 void
-cls(void)
+cls (void)
 {
 	u32 *p = (u32 *)VGA_BASE;
 	u32 blank = (VC (' ', c_front, c_back) << 16)
 		| VC (' ', c_front, c_back);
 
-	while (p < (u32 *)VGA_END - 2)
+	while (p < (u32 *)VGA_END)
 		*p++ = blank;
 
 	col = 0;

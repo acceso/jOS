@@ -12,8 +12,11 @@
 
 void build_page_frames (void);
 
-u64 *get_pages (u32 order);
-u64 *get_page (void);
+void *get_pages (u32 order);
+void *get_one_page (void);
+
+void free_pages (u64 *addr);
+void free_pages_pfn (u64 pfn);
 
 
 #endif /* MM_PHYS */

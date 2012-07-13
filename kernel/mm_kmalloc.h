@@ -8,6 +8,9 @@
 void *kmalloc (u64 size);
 void kfree (void *addr);
 
+void heap_init (void);
+
+
 
 #endif /* MM_KMALLOC */
 

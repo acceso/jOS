@@ -55,7 +55,7 @@ set_idt_reg (u64 base, u16 limit)
 void
 isr_handler (struct intr_frame r)
 {
-	kprintf ("Excepcion %d!\n", r.intnum);
+	kprintf ("Exception %d!\n", r.intnum);
 }
 
 

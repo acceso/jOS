@@ -1,6 +1,6 @@
 
 
-#define VERSION "0.0.0.6"
+#define VERSION "0.0.0.7"
 
 
 #include <inc/types.h>
@@ -15,7 +15,6 @@
 u16
 kmain (void)
 {
-
 	cls ();
 	puts ("Booting jOS kernel " VERSION "!\n");
 

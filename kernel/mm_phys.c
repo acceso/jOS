@@ -52,7 +52,8 @@ pf_mark_free_addr (u64 *addr)
 	if (idx > MEM_BITMAP_MAX)
 		return;
 
-	/* The key to understand this code is: 2^6 = 64 (aka: log2(64)) and: 0x3f = bin(64-1) = 0b111111 */
+	/* The key to understand this code is:
+	   2^6 = 64 (aka: log2(64)) and: 0x3f = bin(64-1) = 0b111111 */
 	bitclear (&zone.memmap[idx], (u64)addr_to_pfn(addr) & 0x3f);
 }
 
@@ -64,13 +65,13 @@ make_usable (struct _usablemem *r)
 	/* Point to the start of the next page frame: */
 	u64 *base, *p;
 	u64 npages = 0;
-u32 i = 0;
 
 	/* Advance (if needed) to the next fully free page frame */
 	if (PAGE_ALIGNED (r->addr))
 		base = r->addr;
 	else
-		base = (u64 *)(((u64)r->addr & PAGE_ALIGN) + PAGE_SIZE);
+		base = align_to (r->addr, PAGE_SIZE);
+
 
 	if ((u64)base + PAGE_SIZE > (u64)r->addr + r->len)
 		return npages;
@@ -116,7 +117,7 @@ build_page_frames (void)
 	} while (i < MMAP_ARRAY_MAX && usablemem[++i].len != 0);
 
 
-	kprintf ("%d page frames initialized!\n", zone.npages);
+	kprintf ("%d free page frames!\n", zone.npages);
 }
 
 
@@ -126,7 +127,7 @@ find_free_pages (u32 order)
 {
 	u64 current_word;
 	u64 i = 0;
-	u8 bit;
+	s32 bit;
 
 	do {
 		/* Small optimization: this one is full */
@@ -140,26 +141,44 @@ find_free_pages (u32 order)
 			if ((current_word & 0x1) == 0)
 				break;
 
-			current_word >>= 1;
 			bit++; 
+			current_word >>= 1;
 		} while (bit < MWORD * 8);
 
-		if (bit < MWORD * 8)
+		if (bit < MWORD * 8) {
+			bitset (&zone.memmap[i], bit);
 			return bit;
+		}
+
 
 	} while (++i < MEM_BITMAP_MAX);
+
 
 	return -1;
 }
 
 
+#if 0
+static s8
+pfn_isfree (u64 pfn)
+{
+	u64 *p = &zone.memmap[pfn >> 6];
+	
+	if (p >= &zone.memmap[MEM_BITMAP_MAX])
+		return -1;
 
-u64 *
+	/* 2^6 => 64 => 0x40 (6 least significative bits) */
+	return bittest(*p, pfn & 0x40);
+}
+#endif
+
+
+void *
 get_pages (u32 order)
 {
 	s32 pfn;
 
-	/* TODO: just can ask for one page for now */
+	/* TODO: just one page for now */
 	if (order > 0)
 		kpanic ("Not yet implemented!\n");
 
@@ -167,17 +186,33 @@ get_pages (u32 order)
 	if (pfn < 0)
 		kpanic ("Out of memory!\n");
 
-	return __va(pfn_to_addr (pfn));
+	return __va (pfn_to_addr (pfn));
  
 }
 
 
-u64 *
-get_page (void)
+void *
+get_one_page (void)
 {
 	return get_pages (0);
 }
 
 
+void
+free_pages (u64 *addr)
+{
+	/* Not needed, pf_mark_free_addr can be called twice
+	if (pfn_isfree (addr_to_pfn (addr)))
+		return; */
+
+	pf_mark_free_addr (addr);
+}
+
+
+void
+free_pages_pfn (u64 pfn)
+{
+	pf_mark_free_addr (pfn_to_addr (pfn));
+}
 
 

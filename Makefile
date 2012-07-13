@@ -1,19 +1,25 @@
 
-elf = elf32
-#elf = elf64
+#elf = elf32
+elf = elf64
 
 PAGE_OFFSET = 0xffff800000000000
+#PAGE_OFFSET = 0x0
 
 
-SOURCES = boot/boot64.o \
-	  kernel/mm.o kernel/mm_phys.o kernel/mm_kmalloc.o kernel/main.o \
-	  lib/bitset.o lib/kernel.o lib/string.o lib/stdio.o lib/list.o \
-	  drivers/vga.o \
-	  kernel/traps.o
+SOURCES = \
+	boot/boot32.o \
+	drivers/vga.o \
+	kernel/main.o kernel/mm.o kernel/mm_kmalloc.o kernel/mm_phys.o kernel/traps.o \
+	lib/bitset.o lib/kernel.o lib/string.o lib/stdio.o lib/list.o \
+	$()
 
-CFLAGS = -ffreestanding -nostdlib -nostdinc -fno-builtin -fno-stack-protector \
-	-nostartfiles -nodefaultlibs -Wall -ggdb -std=gnu99 -iquote . \
-	-O2 -pipe -m64 -mcmodel=large -DK_PAGE_OFFSET=$(PAGE_OFFSET)
+
+CFLAGS = \
+	-ffreestanding -nostdlib -nostdinc -nostartfiles -nodefaultlibs \
+	-fno-stack-protector \
+	-Wall -std=gnu99 -iquote . -pipe -m64 -mcmodel=large \
+	-ggdb -O2 \
+	-DK_PAGE_OFFSET=$(PAGE_OFFSET)
 LDFLAGS = -N -dT linker.ld --defsym page_offset=$(PAGE_OFFSET) # -M
 ASFLAGS = $(CFLAGS)
 
@@ -27,13 +33,12 @@ endif
 
 
 all: $(SOURCES)
-	gcc -c -m32 -o boot/boot32_32.o boot/boot32.S
-	objcopy -O elf64-x86-64 boot/boot32_32.o boot/boot32.o
-	ld $(LDFLAGS) -o jOS boot/boot32.o $(SOURCES)
-	/home/jose/wip/jOS/run.sh
+	ld $(LDFLAGS) -o jOS $(SOURCES)
+	scripts/run.sh
 
 
 clean:
 	rm -f *.o jOS */*.o
+
 
 

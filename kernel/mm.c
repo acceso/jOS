@@ -4,9 +4,11 @@
 
 #include <lib/stdio.h>
 #include <lib/kernel.h>
+#include <lib/bitset.h>
 
 #include "mm.h"
 #include "mm_phys.h"
+#include "mm_kmalloc.h"
 
 
 
@@ -47,7 +49,7 @@ struct _usablemem usablemem[MMAP_ARRAY_MAX];
 
 
 static void
-get_memory_ranges (void)
+get_memory_ranges_grub (void)
 {
 	multiboot_memory_map_t *mmap = (multiboot_memory_map_t *)(u64)mbi->mmap_addr;
 	u8 i = 0;
@@ -58,8 +60,8 @@ get_memory_ranges (void)
 	kprintf ("%i lower and %i upper KB detected. Usable ranges:\n",
 		mbi->mem_lower, mbi->mem_upper);
 
-	if ((mbi->flags & (1<<5)) == 0x0)
-		kpanic ("Invalid memory map!\n");
+	/*if ((mbi->flags & (1<<5)) == 0x0)
+		kpanic ("Invalid memory map!\n");*/
 
 
 	/*kprintf ("mmap_addr = %p, mmap_length = %p\n",
@@ -69,7 +71,7 @@ get_memory_ranges (void)
 	while ((u64)mmap < mbi->mmap_addr + mbi->mmap_length) {
 		if (mmap->type == 1) {
 
-			kprintf ("    base: %p     limit: %p\t(%p B)\t\n", 
+			kprintf ("  base: %10p    limit: %10p    (%10p B)\t\n", 
 				mmap->addr, mmap->addr + mmap->len, mmap->len);
 
 			usablemem[i].addr = (u64 *)mmap->addr;
@@ -84,14 +86,68 @@ get_memory_ranges (void)
 }
 
 
+static void
+get_memory_ranges_e820 (void)
+{
+
+#define SMAP 0x534D4150
+
+#if 0
+	register u32 ebx asm ("%%ebx") = 0;
+	/* Up to this point, no low memory has to be in use (should be obvious 
+	 * because we're detecting it). No other function should use these values. */
+	register u16  di asm ("%%di") = (u16)(u64)align_to ((multiboot_memory_map_t *)1, MWORD); /* We skip 0 */
+
+	register u32 eax asm ("%%eax");
+	register u32 edx asm ("%%edx");
+	register u32 ecx asm ("%%ecx");
+
+
+	do {
+		eax = 0xe820;
+		edx = SMAP; /* "SMAP" Signature */
+		ecx = sizeof (multiboot_memory_map_t) - 4 /* mmap.size is just for grub */;
+
+		/*call_bios ("int $0x15\n");*/
+
+		if (edx != SMAP) {
+			kprintf ("e820 failed! Can do no more :(\n");
+			break;
+		}
+
+		kprintf ("%d\n", mmap.addr);
+		kprintf ("%d\n", mmap.len);
+		kprintf ("%d\n", mmap.type);
+
+	} while (ebx != 0);
+
+#endif
+
+
+	return;
+
+
+}
+
 
 void
 init_memory (void)
 {
 	mbi = (multiboot_info_t *)((u64)mbi32);
 
-	get_memory_ranges ();
+
+	/* Use grub's provided memory if available,
+	 * otherwise, fallback to e820 bios method. */
+	/* Note: the a.out kludge messes up with this (I guess)
+	if ((mbi->flags & (1<<5)) != 0x0)
+		get_memory_ranges_grub ();
+	else
+		get_memory_ranges_e820 ();
+	*/
+	get_memory_ranges_grub ();
+
 	build_page_frames ();
+	heap_init ();
 
 }
 
