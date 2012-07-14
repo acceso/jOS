@@ -8,7 +8,7 @@ PAGE_OFFSET = 0xffff800000000000
 
 SOURCES = \
 	boot/boot32.o \
-	drivers/vga.o \
+	drivers/keyboard.o drivers/vga.o \
 	kernel/main.o kernel/mm.o kernel/mm_kmalloc.o kernel/mm_phys.o \
 	kernel/traps.o kernel/intr.o kernel/timer.o \
 	lib/bitset.o lib/kernel.o lib/string.o lib/stdio.o lib/list.o \
@@ -17,7 +17,7 @@ SOURCES = \
 
 CFLAGS = \
 	-ffreestanding -nostdlib -nostdinc -nostartfiles -nodefaultlibs \
-	-fno-stack-protector \
+	-fno-stack-protector -mno-red-zone \
 	-Wall -std=gnu99 -iquote . -pipe -m64 -mcmodel=large \
 	-ggdb -O2 \
 	-DK_PAGE_OFFSET=$(PAGE_OFFSET)

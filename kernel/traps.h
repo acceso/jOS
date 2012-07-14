@@ -49,11 +49,10 @@
 	"popq %rax\n\t"
 
 
-/* Note: the addq $8 compensates the parameter. */
-#define intr_enter(_n)			\
+/* Note: the addq $8 compensates the parameter "struct intr_frame r". */
+#define intr_enter()			\
 	asm volatile (			\
 		"cli\n\t"		\
-		"pushq $" #_n "\n\t"	\
 		pushaq()		\
 		"addq $8, %rsp\n\t"	\
 		)
@@ -62,7 +61,6 @@
 #define intr_exit(_n)			\
 	asm volatile (			\
 		popaq()			\
-		"addq $8, %rsp\n\t"	\
 		"sti\n\t"		\
 		"iretq\n"		\
 		)
@@ -84,7 +82,6 @@ struct intr_frame {
 	u64 rdx;
 	u64 rcx;
 	u64 rax;
-	u64 intnum;
 	u64 errcode;
 	u64 retrip;
 	u64 cs;

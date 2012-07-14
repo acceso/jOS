@@ -8,14 +8,19 @@
 #include "traps.h"
 
 
+static u64 nticks;
+
+
 __isr__ static void
 do_timer (struct intr_frame r)
 {
-	intr_enter (0);
+	intr_enter ();
 
-	kprintf ("tick! :)\n");
+	nticks++;
 
-	lapic_write (APIC_EOI, TIMER_INTR);
+	/*kprintf ("tick! %llu :)\n", nticks);*/
+
+	lapic_eoi ();
 
 	intr_exit ();
 }

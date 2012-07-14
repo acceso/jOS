@@ -8,7 +8,8 @@ boot:floppy
 floppya: 1_44=/home/jose/wip/jOS/root.img, status=inserted
 
 #megs: 128
-megs: 768
+megs: 512
+#megs: 768
 
 # para entrar en el depurador:
 # xchg %bx, %bx

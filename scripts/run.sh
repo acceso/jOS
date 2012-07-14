@@ -8,7 +8,7 @@ sudo su -c "umount /mnt/tmp"
 
 
 # nota: compilar bochs más o menos así:
-# ./configure --enable-x86-64 --enable-smp --enable-long-phy-address --enable-debugger --enable-debugger-gui --enable-all-optimizations --enable-readline --enable-disasm --prefix=/opt/bochs-2010...
+# ./configure --enable-x86-64 --enable-smp --enable-long-phy-address --enable-debugger --enable-debugger-gui --enable-all-optimizations --enable-readline --enable-disasm --prefix=/opt/bochs-2010 ...
 
 
 

@@ -1,8 +1,4 @@
 
-/* TODO:
- * - blinking cursor move, see http://osdever.net/bkerndev/Docs/printing.htm
- */
-
 
 /*
  * Ad-hoc vga driver

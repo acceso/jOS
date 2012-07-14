@@ -44,12 +44,32 @@
 #define APIC_LVT	0x500 /* to 0x530 */
 
 
+#define LAPIC_ID	0x0
+#define LAPIC_VERSION	0x10
 
 
 void lapic_eoi (void);
 u32 lapic_read (u32 reg);
 void lapic_write (u32 reg, u32 val);
 void init_interrupts (void);
+
+
+
+
+
+
+#define IOAPICID	0x0
+#define IOAPICVER	0x1
+#define IOAPICARB	0x2
+
+
+u32 ioapic_read (u8 reg);
+void ioapic_write (u8 reg, u32 val);
+u64 ioapic_redir_read (u8 n);
+void ioapic_redir_write (u8 n, u64 val);
+
+
+
 
 
 
