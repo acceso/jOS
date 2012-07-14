@@ -51,7 +51,30 @@ void
 itoau (u64 n, char *s, u8 base)
 {
 	char *p;
-	s64 pn = n;
+	u64 pn = n;
+
+#if 0
+	if (n == 0xffff8000003f9000) {
+		char ss[10];
+		u8 a = (n & (0xff00000000000000)) >> 56;
+		u8 b = (n & (0x00ff000000000000)) >> 48;
+		u8 c = (n & (0x0000ff0000000000)) >> 40;
+		u8 d = (n & (0x000000ff00000000)) >> 32;
+		u8 e = (n & (0x00000000ff000000)) >> 24;
+		u8 f = (n & (0x0000000000ff0000)) >> 16;
+		u8 g = (n & (0x000000000000ff00)) >>  8;
+		u8 h = (n & (0x00000000000000ff)) >>  0;
+		puts ("\n");
+		puts ("->"); itoa (a, ss, 10); puts (ss); puts ("<-\n");
+		puts ("->"); itoa (b, ss, 10); puts (ss); puts ("<-\n");
+		puts ("->"); itoa (c, ss, 10); puts (ss); puts ("<-\n");
+		puts ("->"); itoa (d, ss, 10); puts (ss); puts ("<-\n");
+		puts ("->"); itoa (e, ss, 10); puts (ss); puts ("<-\n");
+		puts ("->"); itoa (f, ss, 10); puts (ss); puts ("<-\n");
+		puts ("->"); itoa (g, ss, 10); puts (ss); puts ("<-\n");
+		puts ("->"); itoa (h, ss, 10); puts (ss); puts ("<-\n");
+	}
+#endif
 
 	p = s;
 
@@ -203,18 +226,18 @@ kprintf (const char *fmt, ...)
 				base = 16;
 
 			/* First, let's get a string representation: */
-			if (*p == 'u') {
-				if (flags & KP_LONG)
-					itoau (va_arg (ap, unsigned long int), s, base);
-				else if (flags & KP_LONGLONG)
+			if (*p == 'u' || *p == 'p') {
+				if (flags & KP_LONGLONG)
 					itoau (va_arg (ap, unsigned long long int), s, base);
+				else if (flags & KP_LONG)
+					itoau (va_arg (ap, unsigned long int), s, base);
 				else
 					itoau (va_arg (ap, unsigned int), s, base);
 			} else {
-				if (flags & KP_LONG)
-					itoa (va_arg (ap, long int), s, base);
-				else if (flags & KP_LONGLONG)
+				if (flags & KP_LONGLONG)
 					itoa (va_arg (ap, long long int), s, base);
+				else if (flags & KP_LONG)
+					itoa (va_arg (ap, long int), s, base);
 				else
 					itoa (va_arg (ap, int), s, base);
 			}

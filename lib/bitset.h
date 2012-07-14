@@ -9,10 +9,11 @@
 static void inline
 bitset (u64 *word, u64 pos) 
 {
-	asm(	"bts %[bit], %[reg]\n"
+	asm volatile (
+		"bts %[bit], %[reg]\n"
 		: [reg] "+m"(*word)
 		: [bit] "ir" (pos)
-		: "cc" );
+		: "cc" ); /* cc = condition code */
 
 }
 
@@ -21,7 +22,8 @@ bitset (u64 *word, u64 pos)
 static void inline
 bitclear (u64 *word, u64 pos)
 {
-	asm(	"btr %[bit], %[reg]\n"
+	asm volatile (
+		"btr %[bit], %[reg]\n"
 		: [reg] "+m"(*word)
 		: [bit] "ir" (pos)
 		: "cc" );
@@ -32,7 +34,8 @@ bitclear (u64 *word, u64 pos)
 static void inline
 bittoggle (u64 *word, u64 pos)
 {
-	asm(	"btc %[bit], %[reg]\n"
+	asm volatile (
+		"btc %[bit], %[reg]\n"
 		: [reg] "+m"(*word)
 		: [bit] "ir" (pos)
 		: "cc" );
@@ -49,7 +52,7 @@ bittest (u64 word, u8 pos)
 
 	return word & 1;
 /* TODO: doesn't work (yet) :)
-        asm(	"bt %[bit], %[reg]\n"
+        asm (	"bt %[bit], %[reg]\n"
 		"jc 1f\n"
 		"xor %%ax, %%ax\n"
 		"inc %%ax\n"

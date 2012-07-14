@@ -19,22 +19,6 @@ static struct {
 } __attribute__((__packed__, aligned(8))) idtentry[256];
 
 
-struct intr_frame {
-	u64 rdi;
-	u64 rsi;
-	u64 rbp;
-	u64 rbx;
-	u64 rdx;
-	u64 rcx;
-	u64 rax;
-	u64 intnum;
-	u64 errcode;
-	u64 retrip;
-	u64 cs;
-	u64 rflags;
-	u64 retrsp;
-	u64 ss;
-};
 
 
 static void 
@@ -52,46 +36,15 @@ set_idt_reg (u64 base, u16 limit)
 }
 
 
-void
-isr_handler (struct intr_frame r)
+__isr__ static void
+isr_generic_handler (struct intr_frame r)
 {
+	intr_enter (0);
+
 	kprintf ("Exception %d!\n", r.intnum);
+
+	intr_exit ();
 }
-
-
-
-ISR(0)
-ISR(1)
-ISR(2)
-ISR(3)
-ISR(4)
-ISR(5)
-ISR(6)
-ISR(7)
-ISR(8)
-ISR(9)
-ISR(10)
-ISR(11)
-ISR(12)
-ISR(13)
-ISR(14)
-ISR(15)
-ISR(16)
-ISR(17)
-ISR(18)
-ISR(19)
-ISR(20)
-ISR(21)
-ISR(22)
-ISR(23)
-ISR(24)
-ISR(25)
-ISR(26)
-ISR(27)
-ISR(28)
-ISR(29)
-ISR(30)
-ISR(31)
 
 
 
@@ -116,46 +69,10 @@ init_exceptions (void)
 {
 	u8 n;
 
-	idt_set_gate (0, (u64)&do_isr0, K_CS, GATE_INT);
-	idt_set_gate (1, (u64)&do_isr1, K_CS, GATE_INT);
-	idt_set_gate (2, (u64)&do_isr2, K_CS, GATE_INT);
-	idt_set_gate (3, (u64)&do_isr3, K_CS, GATE_INT);
-	idt_set_gate (4, (u64)&do_isr4, K_CS, GATE_INT);
-	idt_set_gate (5, (u64)&do_isr5, K_CS, GATE_INT);
-	idt_set_gate (6, (u64)&do_isr6, K_CS, GATE_INT);
-	idt_set_gate (7, (u64)&do_isr7, K_CS, GATE_INT);
-	idt_set_gate (8, (u64)&do_isr8, K_CS, GATE_INT);
-	idt_set_gate (9, (u64)&do_isr9, K_CS, GATE_INT);
-	idt_set_gate (10, (u64)&do_isr10, K_CS, GATE_INT);
-	idt_set_gate (11, (u64)&do_isr11, K_CS, GATE_INT);
-	idt_set_gate (12, (u64)&do_isr12, K_CS, GATE_INT);
-	idt_set_gate (13, (u64)&do_isr13, K_CS, GATE_INT);
-	idt_set_gate (14, (u64)&do_isr14, K_CS, GATE_INT);
-	idt_set_gate (15, (u64)&do_isr15, K_CS, GATE_INT);
-	idt_set_gate (16, (u64)&do_isr16, K_CS, GATE_INT);
-	idt_set_gate (17, (u64)&do_isr17, K_CS, GATE_INT);
-	idt_set_gate (18, (u64)&do_isr18, K_CS, GATE_INT);
-	idt_set_gate (19, (u64)&do_isr19, K_CS, GATE_INT);
-	idt_set_gate (20, (u64)&do_isr20, K_CS, GATE_INT);
-	idt_set_gate (21, (u64)&do_isr21, K_CS, GATE_INT);
-	idt_set_gate (22, (u64)&do_isr22, K_CS, GATE_INT);
-	idt_set_gate (23, (u64)&do_isr23, K_CS, GATE_INT);
-	idt_set_gate (24, (u64)&do_isr24, K_CS, GATE_INT);
-	idt_set_gate (25, (u64)&do_isr25, K_CS, GATE_INT);
-	idt_set_gate (26, (u64)&do_isr26, K_CS, GATE_INT);
-	idt_set_gate (27, (u64)&do_isr27, K_CS, GATE_INT);
-	idt_set_gate (28, (u64)&do_isr28, K_CS, GATE_INT);
-	idt_set_gate (29, (u64)&do_isr29, K_CS, GATE_INT);
-	idt_set_gate (30, (u64)&do_isr30, K_CS, GATE_INT);
-	idt_set_gate (31, (u64)&do_isr31, K_CS, GATE_INT);
+	for (n = 0; n <= 254; n++)
+		idt_set_gate (n, (u64)&isr_generic_handler, K_CS, GATE_INT);
 
-	/* TODO: en lugar de reusar, poner uno generico para estas,
-	   aunque bueno, la solución es tener uno genérico para todas...
-	   Otra: xq solo me deja hasta 254?? */
-	for (n = 32; n <= 254; n++)
-		idt_set_gate (n, (u64)&do_isr20, K_CS, GATE_INT);
-
-	set_idt_reg((u64) idtentry, sizeof(idtentry) - 1);
+	set_idt_reg ((u64) idtentry, sizeof(idtentry) - 1);
 
 }
 

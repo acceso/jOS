@@ -74,8 +74,6 @@ _start:
 	btr $31, %eax /* PG: Clear paging */
 	movl %eax, %cr0
 
-
-
 	movl %cr4, %eax
 	bts $4, %eax /* PSE, Page Size Extensions */
 	bts $5, %eax /* PAE, 64-bit page-translation table entries */
@@ -93,6 +91,16 @@ _start:
 	/* 512 * 2MB -> enough for now ( pow(2,30), 1GB ) */
 	map_pde $pml2, $0x87
 	movl $pml2 + 0x7, pml3
+
+#if 1
+	/* 0x9f is like 0x87 but no caching */
+	map_pde $pml2b, $0x9f + 0x40000000
+	map_pde $pml2c, $0x9f + 0x80000000
+	map_pde $pml2d, $0x9f + 0xc0000000
+	movl $pml2b + 0x7, pml3 + 0x8
+	movl $pml2c + 0x7, pml3 + 0x10
+	movl $pml2d + 0x7, pml3 + 0x18
+#endif
 	movl $pml3 + 0x7, pml4
 	movl $pml3 + 0x7, pml4 + 0x800
 
@@ -129,8 +137,7 @@ start64:
 
 /* should be unreachable: */
 1:
-	cli
-	hlt
+	//hlt
 	jmp 1b
 
 
@@ -162,7 +169,11 @@ gdt_end:
 	.lcomm pml4, 0x1000
 	.lcomm pml3, 0x1000
 	.lcomm pml2, 0x1000
-
+#if 1
+	.lcomm pml2b, 0x1000
+	.lcomm pml2c, 0x1000
+	.lcomm pml2d, 0x1000
+#endif
 
 	.set STACKSIZE, 0x1000
 	.lcomm stack, STACKSIZE

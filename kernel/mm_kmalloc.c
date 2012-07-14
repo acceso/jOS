@@ -7,6 +7,9 @@
 #include <lib/stdio.h>
 #include "mm_phys.h"
 #include "mm.h"
+#include "mm_kmalloc.h"
+
+
 
 static const u32 blocksizes [] = {
 	32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072, 262144
@@ -22,12 +25,14 @@ struct _mpages {
 	struct list_head pages;
 	u64 avl_mem;
 	u64 free_mem;
-	struct _mblock *holes[sizeof (blocksizes) / sizeof (u32)];
-	struct _mblock *blocks[sizeof (blocksizes) / sizeof (u32)];
+	struct list_head holes[sizeof (blocksizes) / sizeof (u32)];
+	struct list_head blocks[sizeof (blocksizes) / sizeof (u32)];
+	u16 nholes;
+	u16 nblocks;
 };
 
 static struct {
-	struct _mpages *pages;
+	struct list_head pages;
 	u64 npages;
 	u64 avl_mem;
 	u64 free_mem;
@@ -49,14 +54,16 @@ pool_one_page_init (struct _mpages *mp)
 	i = sizeof (blocksizes) / sizeof (u32);
 
 	while (--i >= 0) {
+		list_init (&mp->holes[i]);
+		list_init (&mp->blocks[i]);
+
 		while ((u64)p + blocksizes[i] < (u64)mp + PAGE_SIZE) {
 
 			((struct _mblock *)p)->addr = (u64)p + sizeof (struct _mblock);
 
-			if (mp->holes[i] == NULL)
-				mp->holes[i] = (struct _mblock *)p;
-			else
-				list_add (&((struct _mblock *)p)->list, &mp->holes[i]->list);
+			list_add_back (&((struct _mblock *)p)->list, &mp->holes[i]);
+
+			mp->nholes++;
 
 			p = (u64 *)((u64)p + blocksizes[i]);
 		}
@@ -78,21 +85,44 @@ pool_add_page (void *addr)
 	mpool.avl_mem += PAGE_SIZE;
 	mpool.npages++;
 
-	/* Is this is the first allocation? */
-	if (mpool.pages == 0x0) {
-		list_init (&mp->pages);
-		mpool.pages = mp;
-	} else
-		list_add (&mp->pages, &mpool.pages->pages);
+	list_add_back (&mp->pages, &mpool.pages);
+
 
 	return;
 }
 
 
+
+/* classical kmalloc, ¿first best fit? */
 void *
-kmalloc (u64 size)
+kmalloc (u64 size, u16 flags)
 {
-	return 0x0;
+	struct _mpages *mp;
+	struct _mblock *mb;
+	u8 i;
+
+
+	/* TODO: not the best algorithm ;) */
+	list_foreach_entry (mp, &mpool.pages, pages) {
+		i = 0;
+
+		do {
+			/* continue if no free blocks of this size or doesn't fit */
+			if (mp->nholes <= 0 || size > blocksizes[i] - sizeof (struct _mblock))
+				continue;
+
+			mb = containerof (list_pop_del (&mp->holes[i]),
+				struct _mblock, list);
+
+			list_add_back (&mb->list, &mp->blocks[i]);
+
+
+			return (void *)mb->addr;
+
+		} while (i++ < sizeof (blocksizes) / sizeof (u32));
+	}
+
+	return (void *)0;
 }
 
 
@@ -100,6 +130,7 @@ kmalloc (u64 size)
 void
 kfree (void *addr)
 {
+	/* TODO: who needs to free memory anyway? :D */
 	return;
 }
 
@@ -114,7 +145,10 @@ heap_init (void)
 	if (p == NULL)
 		kpanic ("Out of memory!\n");
 
+	list_init (&mpool.pages);
+
 	pool_add_page (p);
+
 
 	return;
 }

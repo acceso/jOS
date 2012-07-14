@@ -14,9 +14,8 @@ SECTIONS
     .mboot : AT(ADDR(.mboot))
     {
 	mboot = .;
-	*(.mboot)
+	boot/boot*.o(.mboot)
 	boot/boot*.o(.text)
-	. = ALIGN(4096);
 	boot/boot*.o(.data)
 	boot/boot*.o(.bss)
     }

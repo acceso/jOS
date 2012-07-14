@@ -28,10 +28,10 @@ static struct _zone {
 
 
 
-static u64 *
+static u64
 pfn_to_addr (u64 pfn)
 {
-	return (u64 *) (pfn * PAGE_SIZE);
+	return pfn * PAGE_SIZE;
 }
 
 
@@ -84,7 +84,11 @@ make_usable (struct _usablemem *r)
 			return npages; 
 
 		/* Don't mess up with kernel code! */
-		if ((u64)p + PAGE_SIZE > (u64)&sok && p <  __pa (&eok)) {
+		if ((u64)p + PAGE_SIZE >= (u64)&sok && p < (u64 *)__pa ((u64)&eok)) {
+			p = (u64 *)((u64)p + PAGE_SIZE);
+			continue;
+		} else if ((u64)p + PAGE_SIZE >= 0xfec00000 && (u64)p < 0xffffffff) {
+			/* This is for lapic, io apic, bios... */
 			p = (u64 *)((u64)p + PAGE_SIZE);
 			continue;
 		}
@@ -115,7 +119,6 @@ build_page_frames (void)
 	do {
 		zone.npages += make_usable (&usablemem[i]);
 	} while (i < MMAP_ARRAY_MAX && usablemem[++i].len != 0);
-
 
 	kprintf ("%d free page frames!\n", zone.npages);
 }
@@ -186,8 +189,7 @@ get_pages (u32 order)
 	if (pfn < 0)
 		kpanic ("Out of memory!\n");
 
-	return __va (pfn_to_addr (pfn));
- 
+	return (void *)__va (pfn_to_addr (pfn));
 }
 
 
@@ -212,7 +214,7 @@ free_pages (u64 *addr)
 void
 free_pages_pfn (u64 pfn)
 {
-	pf_mark_free_addr (pfn_to_addr (pfn));
+	pf_mark_free_addr ((u64 *)pfn_to_addr (pfn));
 }
 
 

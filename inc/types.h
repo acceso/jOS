@@ -24,8 +24,8 @@ typedef u64 size_t;
 
 #endif /* _ASM */
 
-#define __pa(_x) (u64 *)((u64)(_x) - K_PAGE_OFFSET)
-#define __va(_x) (u64 *)((u64)(_x) + K_PAGE_OFFSET)
+#define __pa(_x) ((_x) - K_PAGE_OFFSET)
+#define __va(_x) ((_x) + K_PAGE_OFFSET)
 
 
 #endif /* TYPES_H */

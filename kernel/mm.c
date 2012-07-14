@@ -86,13 +86,13 @@ get_memory_ranges_grub (void)
 }
 
 
+#if 0
 static void
 get_memory_ranges_e820 (void)
 {
 
 #define SMAP 0x534D4150
 
-#if 0
 	register u32 ebx asm ("%%ebx") = 0;
 	/* Up to this point, no low memory has to be in use (should be obvious 
 	 * because we're detecting it). No other function should use these values. */
@@ -121,13 +121,13 @@ get_memory_ranges_e820 (void)
 
 	} while (ebx != 0);
 
-#endif
 
 
 	return;
 
 
 }
+#endif
 
 
 void
