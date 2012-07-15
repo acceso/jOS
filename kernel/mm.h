@@ -4,14 +4,16 @@
 
 
 
-#include <inc/types.h>
+#include <stdint.h>
 
 
 #define PAGE_ALIGN      ~(0x200000 - 1)
 #define PAGE_SIZE       0x200000
 #define PAGE_OFFSET     21
 
+
 #define PAGE_ALIGNED(_a) (((u64)(_a) & PAGE_ALIGN) == (u64)(_a))
+
 
 
 
@@ -26,8 +28,6 @@ struct _usablemem {
 
 
 void init_memory (void);
-
-
 
 
 

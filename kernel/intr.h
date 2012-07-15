@@ -3,12 +3,18 @@
 #define INTR_H
 
 
-#include <inc/types.h>
+#include <stdint.h>
 
 
-#define SPURIOUS_INTR	32
-#define APIC_E_INTR	34
-#define TIMER_INTR	64
+#define SPURIOUS_INTR		32
+#define APIC_E_INTR		34
+#define LAPIC_TIMER_INTR	64
+
+
+#define IOAPICID	0x0
+#define IOAPICVER	0x1
+#define IOAPICARB	0x2
+
 
 
 
@@ -48,29 +54,22 @@
 #define LAPIC_VERSION	0x10
 
 
+
 void lapic_eoi (void);
 u32 lapic_read (u32 reg);
 void lapic_write (u32 reg, u32 val);
+
+
+
+
+static inline void
+interrupts_enable (void)
+{
+	asm volatile ("sti\n\t");
+}
+
+
 void init_interrupts (void);
-
-
-
-
-
-
-#define IOAPICID	0x0
-#define IOAPICVER	0x1
-#define IOAPICARB	0x2
-
-
-u32 ioapic_read (u8 reg);
-void ioapic_write (u8 reg, u32 val);
-u64 ioapic_redir_read (u8 n);
-void ioapic_redir_write (u8 n, u64 val);
-
-
-
-
 
 
 #endif /* INTR_H */

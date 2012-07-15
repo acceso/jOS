@@ -6,6 +6,8 @@
 
 boot:floppy
 floppya: 1_44=/home/jose/wip/jOS/root.img, status=inserted
+ata0-master: type=disk, path=/home/jose/wip/jOS/referencia.img, mode=vmware4
+#, cylinders=306, heads=4, spt=17, translation=none
 
 #megs: 128
 megs: 512
@@ -16,7 +18,6 @@ megs: 512
 #magic_break: enabled=1
 
 boot: floppy
-
 
 display_library: x
 

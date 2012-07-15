@@ -3,13 +3,14 @@
 #define VGA_H
 
 
-#include <inc/types.h>
+#include <stdint.h>
+
+
+
 
 
 void cls(void);
-
 void vga_writechar (const u8 c);
-
 
 
 #endif /* VGA_H */

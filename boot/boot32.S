@@ -1,6 +1,6 @@
 
-
-#include "../inc/boot.h"
+#define _ASM
+#include "../lib/kernel.h"
 #define IA32_EFER 0x0c0000080
 
 
@@ -124,6 +124,7 @@ _start:
 
 	.global start64
 start64:
+
 	movabsq $(stack + STACKSIZE), %rsp
 
 	pushq $0x0;

@@ -1,12 +1,14 @@
 
 
-#include <inc/types.h>
-#include <lib/stdio.h>
-#include <lib/list.h>
-#include <kernel/mm.h>
-#include <kernel/mm_kmalloc.h>
-#include <lib/kernel.h>
+#include <stdint.h>
+#include <stdio.h>
 #include <lib/bitset.h>
+#include <lib/kernel.h>
+#include <lib/list.h>
+#include <lib/mem.h>
+
+#include "mm.h"
+#include "mm_kmalloc.h"
 
 
 
@@ -18,7 +20,7 @@ extern u64 sok, eok;
 extern struct _usablemem usablemem[MMAP_ARRAY_MAX];
 
 
-#define MEM_BITMAP_MAX 32 /* Max physical memory: 32 * pow (2,21) * 64 */
+#define MEM_BITMAP_MAX 32 /* Max physical mem: 32 * pow (2,21) * 64 */
 
 
 static struct _zone {
@@ -84,10 +86,15 @@ make_usable (struct _usablemem *r)
 			return npages; 
 
 		/* Don't mess up with kernel code! */
-		if ((u64)p + PAGE_SIZE >= (u64)&sok && p < (u64 *)__pa ((u64)&eok)) {
+		if ((u64)p + PAGE_SIZE >= (u64)&sok
+			&& p < (u64 *)__pa ((u64)&eok)) {
+
 			p = (u64 *)((u64)p + PAGE_SIZE);
 			continue;
-		} else if ((u64)p + PAGE_SIZE >= 0xfec00000 && (u64)p < 0xffffffff) {
+
+		} else if ((u64)p + PAGE_SIZE >= 0xfec00000
+			&& (u64)p < 0xffffffff) {
+
 			/* This is for lapic, io apic, bios... */
 			p = (u64 *)((u64)p + PAGE_SIZE);
 			continue;
@@ -120,7 +127,7 @@ build_page_frames (void)
 		zone.npages += make_usable (&usablemem[i]);
 	} while (i < MMAP_ARRAY_MAX && usablemem[++i].len != 0);
 
-	kprintf ("%d free page frames!\n", zone.npages);
+	kprintf ("  %d free page frames\n", zone.npages);
 }
 
 
@@ -161,6 +168,7 @@ find_free_pages (u32 order)
 }
 
 
+
 #if 0
 static s8
 pfn_isfree (u64 pfn)
@@ -174,6 +182,7 @@ pfn_isfree (u64 pfn)
 	return bittest(*p, pfn & 0x40);
 }
 #endif
+
 
 
 void *
@@ -193,11 +202,13 @@ get_pages (u32 order)
 }
 
 
+
 void *
 get_one_page (void)
 {
 	return get_pages (0);
 }
+
 
 
 void
@@ -209,6 +220,7 @@ free_pages (u64 *addr)
 
 	pf_mark_free_addr (addr);
 }
+
 
 
 void

@@ -1,8 +1,7 @@
 
 
-#include <inc/types.h>
-
-#include <lib/stdio.h>
+#include <stdint.h>
+#include <stdio.h>
 #include <lib/kernel.h>
 #include <lib/bitset.h>
 
@@ -31,6 +30,7 @@ typedef struct multiboot_info {
 } multiboot_info_t;
 
 
+
 struct multiboot_mmap_entry {
 	u32 size;
 	u64 addr;
@@ -41,6 +41,7 @@ struct multiboot_mmap_entry {
 typedef struct multiboot_mmap_entry multiboot_memory_map_t;
 
 
+
 extern u32 mbi32;
 static multiboot_info_t *mbi;
 
@@ -48,11 +49,16 @@ static multiboot_info_t *mbi;
 struct _usablemem usablemem[MMAP_ARRAY_MAX];
 
 
+
 static void
 get_memory_ranges_grub (void)
 {
-	multiboot_memory_map_t *mmap = (multiboot_memory_map_t *)(u64)mbi->mmap_addr;
+	multiboot_memory_map_t *mmap;
 	u8 i = 0;
+
+
+	mmap = (multiboot_memory_map_t *)(u64)mbi->mmap_addr;
+
 
 	if ((mbi->flags & (1<<0)) == 0x0)
 		kpanic ("Can't detect memory!\n");
@@ -65,20 +71,24 @@ get_memory_ranges_grub (void)
 
 
 	/*kprintf ("mmap_addr = %p, mmap_length = %p\n",
-		(unsigned) mbi->mmap_addr, (unsigned) mbi->mmap_length);*/
+		(unsigned) mbi->mmap_addr,
+		(unsigned) mbi->mmap_length);*/
 
 
 	while ((u64)mmap < mbi->mmap_addr + mbi->mmap_length) {
 		if (mmap->type == 1) {
 
-			kprintf ("  base: %10p    limit: %10p    (%10p B)\t\n", 
-				mmap->addr, mmap->addr + mmap->len, mmap->len);
+			kprintf ("  base: %10p    limit: %10p    "
+				 "(%10p B)\t\n", 
+				 mmap->addr, mmap->addr + mmap->len,
+				 mmap->len);
 
 			usablemem[i].addr = (u64 *)mmap->addr;
 			usablemem[i++].len = mmap->len;
 
 		}
-		mmap = (multiboot_memory_map_t *)((u64)mmap + mmap->size + sizeof (mmap->size));
+		mmap = (multiboot_memory_map_t *)((u64)mmap + mmap->size
+			+ sizeof (mmap->size));
 	}
 
 
@@ -94,9 +104,11 @@ get_memory_ranges_e820 (void)
 #define SMAP 0x534D4150
 
 	register u32 ebx asm ("%%ebx") = 0;
-	/* Up to this point, no low memory has to be in use (should be obvious 
-	 * because we're detecting it). No other function should use these values. */
-	register u16  di asm ("%%di") = (u16)(u64)align_to ((multiboot_memory_map_t *)1, MWORD); /* We skip 0 */
+	/* Up to this point, no low memory has to be in use
+	 * (should be obvious because we're detecting it).
+	 * No other function should use these values. */
+	register u16  di asm ("%%di") = (u16)(u64) /* We skip 0 */
+		align_to ((multiboot_memory_map_t *)1, MWORD); 
 
 	register u32 eax asm ("%%eax");
 	register u32 edx asm ("%%edx");
@@ -106,7 +118,7 @@ get_memory_ranges_e820 (void)
 	do {
 		eax = 0xe820;
 		edx = SMAP; /* "SMAP" Signature */
-		ecx = sizeof (multiboot_memory_map_t) - 4 /* mmap.size is just for grub */;
+		ecx = sizeof (multiboot_memory_map_t) - 4;
 
 		/*call_bios ("int $0x15\n");*/
 
@@ -128,6 +140,7 @@ get_memory_ranges_e820 (void)
 
 }
 #endif
+
 
 
 void

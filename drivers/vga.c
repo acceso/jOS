@@ -1,11 +1,11 @@
 
 
-/*
- * Ad-hoc vga driver
- */
-
-#include <inc/types.h>
-#include <lib/stdio.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdarg.h>
+#include <sys/io.h>
+#include <lib/kernel.h>
+#include <lib/mem.h>
 #include "vga.h"
 
 
@@ -47,7 +47,8 @@ static u8 c_front = C_LIGHT_GREY;
 static u8 c_back = C_BLACK;
 
 
-static inline void move_cursor (void)
+static inline void
+move_cursor (void)
 {
 	u16 loc = line * 80 + col;
 
@@ -166,5 +167,6 @@ vga_writechar (const u8 c)
 	return;
 
 }
+
 
 

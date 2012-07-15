@@ -2,15 +2,15 @@
 // http://forum.osdev.org/viewtopic.php?f=1&t=18389
 
 
-#include <inc/boot.h>
-#include <inc/types.h>
+#include <stdint.h>
+#include <stdio.h>
 #include <lib/bitset.h>
+#include <lib/cpu.h>
 #include <lib/kernel.h>
-#include <lib/stdio.h>
+#include <lib/mem.h>
 
 #include "mm_kmalloc.h"
 #include "intr.h"
-#include "timer.h"
 #include "traps.h"
 
 
@@ -34,6 +34,7 @@ ioapic_regsel (u8 reg)
 }
 
 
+
 u32
 ioapic_read (u8 reg)
 {
@@ -41,6 +42,7 @@ ioapic_read (u8 reg)
 
 	return *(volatile u32 *)(ioapic.base + IOWIN);
 }
+
 
 
 void
@@ -53,7 +55,6 @@ ioapic_write (u8 reg, u32 val)
 
 
 
-
 static inline u8
 ioapic_redir_nint_to_reg (u8 n)
 {
@@ -61,7 +62,8 @@ ioapic_redir_nint_to_reg (u8 n)
 }
 
 
-u64
+#if 0 // will needit..
+static u64
 ioapic_redir_read (u8 n)
 {
 	u64 v;
@@ -74,9 +76,10 @@ ioapic_redir_read (u8 n)
 
 	return v;
 }
+#endif
 
 
-void
+static void
 ioapic_redir_write (u8 n, u64 val)
 {
 	u8 reg = ioapic_redir_nint_to_reg (n);
@@ -102,17 +105,9 @@ ioapic_init (void)
 
 	ioapic.version = (u8)(ioapic_read (IOAPICVER) & 0xff);
 
-	/* Vector starts after the exceptions */
-/*	for (i = 0; i < 24; i++)
-		ioapic_redir_write (i, 0xff00000000000000 + 0x800 + i + 32);
-*/
-	ioapic_redir_write (1, 0xff00000000000000 + 0x800 + 1 + 32); // Teclado
-
-
-	/* This makes sure the pic is not in use 
-	 * The mp tables have to be parsed to know if is needed */
-	outb (0x22, 0x70);
-	outb (0x23, 0x01);
+	for (i = 0; i < 24; i++)
+		ioapic_redir_write (i,
+			0xff00000000000000 + 0x800 + (i + 32));
 
 	lapic_eoi ();
 
@@ -162,11 +157,17 @@ lapic_eoi (void)
 
 
 
-static void
-do_spurious (void)
+__isr__
+do_spurious (struct intr_frame r)
 {
+	intr_enter ();
+
 	kprintf ("Spurious int!\n");
+
+	lapic_eoi ();
+	intr_exit ();
 }
+
 
 
 static void
@@ -177,7 +178,8 @@ lapic_init (void)
 	/* Fields:
 	 * 0x800: EN enable/disable
 	 * 0x100: BSP: bootstrap cpu core */
-	msr_write (IA32_APIC_BASE_MSR, 0x800 | 0x100 | (u64)__pa (lapic.base));
+	msr_write (IA32_APIC_BASE_MSR,
+		0x800 | 0x100 | (u64)__pa (lapic.base));
 
 
 	lapic.id = (u8)((lapic_read (APIC_ID) >> 24) & 0xf);
@@ -198,7 +200,8 @@ lapic_init (void)
 	/* Set TPR to 0, unblocks all interrupts */
 	lapic_write (APIC_TPR, 0); 
 
-	/* Apic error local vector table reg, readable error on APIC_ESR */
+	/* Apic error local vector table reg,
+	 * readable error on APIC_ESR */
 	lapic_write (APIC_EVTE, APIC_E_INTR);
 
 	/* allow external interrupts and nmi */

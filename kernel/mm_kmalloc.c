@@ -1,10 +1,12 @@
 
 
-#include <inc/types.h>
-#include <lib/list.h>
-#include <lib/kernel.h>
+#include <stdint.h>
+#include <stdio.h>
 #include <lib/bitset.h>
-#include <lib/stdio.h>
+#include <lib/kernel.h>
+#include <lib/list.h>
+#include <lib/mem.h>
+
 #include "mm_phys.h"
 #include "mm.h"
 #include "mm_kmalloc.h"
@@ -12,7 +14,8 @@
 
 
 static const u32 blocksizes [] = {
-	32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072, 262144
+	32, 64, 128, 256, 512, 1024, 2048, 4096,
+	8192, 16384, 32768, 65536, 131072, 262144
 };
 
 
@@ -20,6 +23,7 @@ struct _mblock {
 	u64 addr;
 	struct list_head list;
 };
+
 
 struct _mpages {
 	struct list_head pages;
@@ -31,12 +35,14 @@ struct _mpages {
 	u16 nblocks;
 };
 
+
 static struct {
 	struct list_head pages;
 	u64 npages;
 	u64 avl_mem;
 	u64 free_mem;
 } mpool;
+
 
 
 static void
@@ -59,9 +65,11 @@ pool_one_page_init (struct _mpages *mp)
 
 		while ((u64)p + blocksizes[i] < (u64)mp + PAGE_SIZE) {
 
-			((struct _mblock *)p)->addr = (u64)p + sizeof (struct _mblock);
+			((struct _mblock *)p)->addr = (u64)p
+				+ sizeof (struct _mblock);
 
-			list_add_back (&((struct _mblock *)p)->list, &mp->holes[i]);
+			list_add_back (&((struct _mblock *)p)->list,
+				&mp->holes[i]);
 
 			mp->nholes++;
 
@@ -107,8 +115,10 @@ kmalloc (u64 size, u16 flags)
 		i = 0;
 
 		do {
-			/* continue if no free blocks of this size or doesn't fit */
-			if (mp->nholes <= 0 || size > blocksizes[i] - sizeof (struct _mblock))
+			/* continue if no free blocks of this size
+			 * or doesn't fit */
+			if (mp->nholes <= 0 || size > blocksizes[i]
+					- sizeof (struct _mblock))
 				continue;
 
 			mb = containerof (list_pop_del (&mp->holes[i]),
@@ -133,6 +143,7 @@ kfree (void *addr)
 	/* TODO: who needs to free memory anyway? :D */
 	return;
 }
+
 
 
 void

@@ -2,10 +2,14 @@
 #ifndef MM_KMALLOC
 #define MM_KMALLOC
 
-#include <inc/types.h>
+
+#include <stdint.h>
+
 
 
 #define MEM_UNCACHED	0x1
+
+
 
 
 void *kmalloc (u64 size, u16 flags);

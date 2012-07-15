@@ -1,22 +1,18 @@
 
+
+#include <stdint.h>
+#include <stdarg.h>
+#include <ctype.h>
+#include <string.h>
+#include <stdlib.h>
 #include <drivers/vga.h>
-#include <inc/types.h>
-#include <lib/string.h>
 
 #include "stdio.h"
 
 
 
-void
-puts (const char *s)
-{
-	while (*s)
-		vga_writechar (*s++);
-}
 
-
-
-void
+static void
 itoa (s64 n, char *s, u8 base)
 {
 	char *p;
@@ -47,7 +43,9 @@ itoa (s64 n, char *s, u8 base)
 
 }
 
-void
+
+
+static void
 itoau (u64 n, char *s, u8 base)
 {
 	char *p;
@@ -98,23 +96,6 @@ itoau (u64 n, char *s, u8 base)
 
 
 
-
-
-u64
-atoi (const char *s)
-{
-	u64 n = 0;
-
-	while (is_digit (*s++)) {
-		n *= 10;
-		n += *(s - 1) - '0';
-	}
-
-	return n;
-}
-
-
-
 #define KP_LEFTJUST	1
 #define KP_SIGN		2
 #define KP_ZEROPAD	4
@@ -128,9 +109,8 @@ atoi (const char *s)
 char buf[2048];
 
 
-
-/* 
- * Spec: http://www.opengroup.org/onlinepubs/000095399/functions/printf.html
+/* Spec:
+ * http://www.opengroup.org/onlinepubs/000095399/functions/printf.html
  * partly implemented.
  * TODO: not bound checking for "buf"!
  */
@@ -183,13 +163,13 @@ kprintf (const char *fmt, ...)
 		} while (1);
 
 
-		if (is_digit (*p))
+		if (isdigit (*p))
 			width = atoi (p);
 		else
 			width = 0;
 
 
-		while (is_digit (*p))
+		while (isdigit (*p))
 			p++;
 
 
@@ -260,8 +240,8 @@ kprintf (const char *fmt, ...)
 				c = ' ';
 
 
-			/* If not left adjusted and the width is greater than the 
-			 * generated string: */
+			/* If not left adjusted and the width is greater
+			 * than the generated string: */
 			if ((flags & KP_LEFTJUST) == 0 && width - l > 0) {
 				l = width - l;
 				while (l--)
@@ -320,30 +300,13 @@ kprintf (const char *fmt, ...)
 
 
 void
-outb (u16 port, u8 val)
+puts (const char *s)
 {
-	asm volatile ("outb %1, %0" : : "dN" (port), "a" (val));
+	while (*s)
+		vga_writechar (*s++);
 }
 
 
-
-u8
-inb (u16 port)
-{
-	u8 ret;
-	asm volatile("inb %1, %0" : "=a" (ret) : "dN" (port));
-	return ret;
-}
-
-
-
-u16
-inw(u16 port)
-{
-	u16 ret;
-	asm volatile ("inw %1, %0" : "=a" (ret) : "dN" (port));
-	return ret;
-} 
 
 
 

@@ -1,6 +1,9 @@
 
 
-#include <inc/types.h>
+#include <stdio.h>
+#include <stdint.h>
+
+
 
 
 /* I could probably do better :).
@@ -25,6 +28,7 @@ align_to (void *a, u32 p)
 
 	return (void *)((((long)a >> i) << i) + p);
 }
+
 
 
 

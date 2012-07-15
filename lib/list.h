@@ -3,7 +3,8 @@
 #define LIST_H
 
 
-#include <inc/types.h>
+#include <stdint.h>
+
 
 
 #define containerof(_ptr, _type, _member) \
@@ -35,6 +36,7 @@ list_add (struct list_head *new, struct list_head *head)
 }
 
 
+
 static inline void
 list_add_back (struct list_head *new, struct list_head *head)
 {
@@ -45,6 +47,7 @@ list_add_back (struct list_head *new, struct list_head *head)
 }
 
 
+
 static inline void
 list_del (struct list_head *e)
 {
@@ -53,11 +56,13 @@ list_del (struct list_head *e)
 }
 
 
+
 static inline struct list_head *
 list_pop (struct list_head *h)
 {
 	return h->next;
 }
+
 
 
 static inline struct list_head *
@@ -73,10 +78,10 @@ list_pop_del (struct list_head *h)
 
 
 /* Linux kernel terminology */
-#define list_foreach_entry(_var, _head, _member)				\
-	for (_var = containerof ((_head)->next, typeof (*_var), _member);	\
-		&((_var)->_member) != (_head);					\
-		_var = containerof ((_var)->_member.next, typeof (*_var), _member))
+#define list_foreach_entry(_var, _head, _memb)			\
+for (_var = containerof ((_head)->next, typeof (*_var), _memb);	\
+	&((_var)->_memb) != (_head);				\
+	_var = containerof ((_var)->_memb.next, typeof (*_var), _memb))
 
 
 

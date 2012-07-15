@@ -1,24 +1,12 @@
 
 
-#include <inc/boot.h>
-#include <inc/types.h>
+#include <stdint.h>
+#include <stdio.h>
 #include <drivers/vga.h>
-#include <lib/stdio.h>
+#include <lib/kernel.h>
 
 #include "traps.h"
 #include "intr.h"
-
-
-static struct {
-	u16 offset1;
-	u16 selector;
-	u8 ist;
-	u8 flags;
-	u16 offset2;
-	u32 offset3;
-	u32 reserved;
-} __attribute__((__packed__, aligned(8))) idtentry[256];
-
 
 
 
@@ -37,8 +25,9 @@ set_idt_reg (u64 base, u16 limit)
 }
 
 
-__isr__ static void
-exc_generic_handler (struct intr_frame r __attribute__ ((unused)))
+
+__isr__
+exc_generic_handler ()
 {
 	intr_enter ();
 
@@ -48,8 +37,9 @@ exc_generic_handler (struct intr_frame r __attribute__ ((unused)))
 }
 
 
-__isr__ static void
-exc_0_divideby0 (struct intr_frame r __attribute__ ((unused)))
+
+__isr__
+exc_0_divideby0 (struct intr_frame r)
 {
 	intr_enter ();
 
@@ -59,8 +49,9 @@ exc_0_divideby0 (struct intr_frame r __attribute__ ((unused)))
 }
 
 
-__isr__ static void
-exc_1_debug (struct intr_frame r __attribute__ ((unused)))
+
+__isr__
+exc_1_debug (struct intr_frame r)
 {
 	intr_enter ();
 
@@ -70,8 +61,9 @@ exc_1_debug (struct intr_frame r __attribute__ ((unused)))
 }
 
 
-__isr__ static void
-exc_2_nmi (struct intr_frame r __attribute__ ((unused)))
+
+__isr__
+exc_2_nmi (struct intr_frame r)
 {
 	intr_enter ();
 
@@ -81,8 +73,9 @@ exc_2_nmi (struct intr_frame r __attribute__ ((unused)))
 }
 
 
-__isr__ static void
-exc_3_breakpoint (struct intr_frame r __attribute__ ((unused)))
+
+__isr__
+exc_3_breakpoint (struct intr_frame r)
 {
 	intr_enter ();
 
@@ -92,8 +85,9 @@ exc_3_breakpoint (struct intr_frame r __attribute__ ((unused)))
 }
 
 
-__isr__ static void
-exc_4_overflow (struct intr_frame r __attribute__ ((unused)))
+
+__isr__
+exc_4_overflow (struct intr_frame r)
 {
 	intr_enter ();
 
@@ -103,8 +97,9 @@ exc_4_overflow (struct intr_frame r __attribute__ ((unused)))
 }
 
 
-__isr__ static void
-exc_5_bound (struct intr_frame r __attribute__ ((unused)))
+
+__isr__
+exc_5_bound (struct intr_frame r)
 {
 	intr_enter ();
 
@@ -114,8 +109,9 @@ exc_5_bound (struct intr_frame r __attribute__ ((unused)))
 }
 
 
-__isr__ static void
-exc_6_iopcode (struct intr_frame r __attribute__ ((unused)))
+
+__isr__
+exc_6_iopcode (struct intr_frame r)
 {
 	intr_enter ();
 
@@ -125,8 +121,9 @@ exc_6_iopcode (struct intr_frame r __attribute__ ((unused)))
 }
 
 
-__isr__ static void
-exc_7_nomathco (struct intr_frame r __attribute__ ((unused)))
+
+__isr__
+exc_7_nomathco (struct intr_frame r)
 {
 	intr_enter ();
 
@@ -136,19 +133,41 @@ exc_7_nomathco (struct intr_frame r __attribute__ ((unused)))
 }
 
 
-__isr__ static void
-exc_8_doublefault (struct intr_frame r __attribute__ ((unused)))
+
+__isr__
+exc_8_doublefault (struct exceptp_frame r)
 {
 	intr_enter ();
 
 	kprintf ("Double fault!\n");
 
+//	kprintf ("\n%llp\n", &r);
+
+#if 0 // Meter esto en una función!
+	kprintf ("r11    (%llp)\n", r.r11);
+	kprintf ("r10    (%llp)\n", r.r10);
+	kprintf ("r9     (%llp)\n", r.r9);
+	kprintf ("r8     (%llp)\n", r.r8);
+	kprintf ("rdi    (%llp)\n", r.rdi);
+	kprintf ("rsi    (%llp)\n", r.rsi);
+	kprintf ("rdx    (%llp)\n", r.rdx);
+	kprintf ("rcx    (%llp)\n", r.rcx);
+	kprintf ("rax    (%llp)\n", r.rax);
+	kprintf ("ecode  (%llp)\n", r.ecode);
+	kprintf ("retrip (%llp)\n", r.retrip);
+	kprintf ("cs     (%llp)\n", r.cs);
+	kprintf ("rflags (%llp)\n", r.rflags);
+	kprintf ("retrsp (%llp)\n", r.retrsp);
+	kprintf ("ss     (%llp)\n", r.ss);
+#endif
+
 	intr_exit ();
 }
 
 
-__isr__ static void
-exc_10_tss_inval (struct intr_frame r __attribute__ ((unused)))
+
+__isr__
+exc_10_tss_inval (struct exceptp_frame r)
 {
 	intr_enter ();
 
@@ -158,8 +177,9 @@ exc_10_tss_inval (struct intr_frame r __attribute__ ((unused)))
 }
 
 
-__isr__ static void
-exc_11_nosuchsegment (struct intr_frame r __attribute__ ((unused)))
+
+__isr__
+exc_11_nosuchsegment (struct exceptp_frame r)
 {
 	intr_enter ();
 
@@ -169,8 +189,9 @@ exc_11_nosuchsegment (struct intr_frame r __attribute__ ((unused)))
 }
 
 
-__isr__ static void
-exc_12_stack (struct intr_frame r __attribute__ ((unused)))
+
+__isr__
+exc_12_stack (struct exceptp_frame r)
 {
 	intr_enter ();
 
@@ -180,8 +201,9 @@ exc_12_stack (struct intr_frame r __attribute__ ((unused)))
 }
 
 
-__isr__ static void
-exc_13_gp (struct intr_frame r __attribute__ ((unused)))
+
+__isr__
+exc_13_gp (struct exceptp_frame r)
 {
 	intr_enter ();
 
@@ -191,8 +213,9 @@ exc_13_gp (struct intr_frame r __attribute__ ((unused)))
 }
 
 
-__isr__ static void
-exc_14_pf (struct intr_frame r __attribute__ ((unused)))
+
+__isr__
+exc_14_pf (struct exceptp_frame r)
 {
 	intr_enter ();
 
@@ -202,8 +225,9 @@ exc_14_pf (struct intr_frame r __attribute__ ((unused)))
 }
 
 
-__isr__ static void
-exc_16_math_pending (struct intr_frame r __attribute__ ((unused)))
+
+__isr__
+exc_16_math_pending (struct intr_frame r)
 {
 	intr_enter ();
 
@@ -213,8 +237,9 @@ exc_16_math_pending (struct intr_frame r __attribute__ ((unused)))
 }
 
 
-__isr__ static void
-exc_17_misalignment (struct intr_frame r __attribute__ ((unused)))
+
+__isr__
+exc_17_misalignment (struct exceptp_frame r)
 {
 	intr_enter ();
 
@@ -224,8 +249,9 @@ exc_17_misalignment (struct intr_frame r __attribute__ ((unused)))
 }
 
 
-__isr__ static void
-exc_18_machinecheck (struct intr_frame r __attribute__ ((unused)))
+
+__isr__
+exc_18_machinecheck (struct intr_frame r)
 {
 	intr_enter ();
 
@@ -235,8 +261,9 @@ exc_18_machinecheck (struct intr_frame r __attribute__ ((unused)))
 }
 
 
-__isr__ static void
-exc_19_simd (struct intr_frame r __attribute__ ((unused)))
+
+__isr__
+exc_19_simd (struct intr_frame r)
 {
 	intr_enter ();
 
@@ -246,8 +273,9 @@ exc_19_simd (struct intr_frame r __attribute__ ((unused)))
 }
 
 
-__isr__ static void
-exc_30_security (struct intr_frame r __attribute__ ((unused)))
+
+__isr__
+exc_30_security (struct intr_frame r)
 {
 	intr_enter ();
 
@@ -258,12 +286,12 @@ exc_30_security (struct intr_frame r __attribute__ ((unused)))
 
 
 
-__isr__ static void
-isr_generic_handler (struct intr_frame r __attribute__ ((unused)))
+__isr__
+isr_generic_handler (struct intr_frame r)
 {
 	intr_enter ();
 
-	kprintf ("Interrupt!\n");
+	/*kprintf ("Interrupt!\n");*/
 
 	lapic_eoi ();
 	intr_exit ();
@@ -271,9 +299,32 @@ isr_generic_handler (struct intr_frame r __attribute__ ((unused)))
 
 
 
+
+
+static struct {
+	u16 offset1;
+	u16 selector;
+	u8 ist;
+	u8 flags;
+	u16 offset2;
+	u32 offset3;
+	u32 reserved;
+} __attribute__((__packed__, aligned(8))) idtentry[256];
+
+
+
 void
 idt_set_gate (u8 num, u64 addr, u16 selector, u16 flags)
 {
+	/* No, i'm not smoking crack :)
+	 * gcc doesn't support "naked" functions, see:
+	 * http://gcc.gnu.org/bugzilla/show_bug.cgi?id=25967
+	 * Until this bug gets fixed, I have come up with this hack:
+	 * instead of pointing at the function, I skip several bytes,
+	 * and add a padding of "nop" instructions.
+	 * It sucks but it's better than any other solution */
+	addr += 16;
+
 	idtentry[num].offset1 = addr & 0xFFFF;
 	idtentry[num].offset2 = (addr >> 16) & 0xFFFF;
 	idtentry[num].offset3 = (addr >> 32);
@@ -284,6 +335,8 @@ idt_set_gate (u8 num, u64 addr, u16 selector, u16 flags)
 	idtentry[num].ist = 0;
 
 }
+
+
 
 
 

@@ -1,6 +1,7 @@
 
 
-#include <lib/stdio.h>
+#include <stdio.h>
+
 
 
 

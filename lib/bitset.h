@@ -3,7 +3,8 @@
 #define BITSET_H
 
 
-#include <inc/types.h>
+#include <stdint.h>
+
 
 
 static void inline
@@ -42,6 +43,7 @@ bittoggle (u64 *word, u64 pos)
 }
 
 
+
 static u8 inline
 bittest (u64 word, u8 pos)
 {
@@ -51,6 +53,7 @@ bittest (u64 word, u8 pos)
 	}
 
 	return word & 1;
+
 /* TODO: doesn't work (yet) :)
         asm (	"bt %[bit], %[reg]\n"
 		"jc 1f\n"
@@ -64,8 +67,6 @@ bittest (u64 word, u8 pos)
 
 
 
-
-void *align_to (void *a, int p);
 
 
 #endif /* BITSET_H */

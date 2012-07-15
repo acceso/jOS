@@ -1,9 +1,11 @@
 
-#include <inc/types.h>
-#include <inc/boot.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <sys/io.h>
+#include <lib/kernel.h>
 #include <kernel/traps.h>
 #include <kernel/intr.h>
-#include <lib/stdio.h>
+
 
 
 static struct {
@@ -12,51 +14,73 @@ static struct {
 } keyb;
 
 
-char kb_en[] = { 0,
-		27, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '\b',
-		'\t', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n',
-		0 /* Control */ , 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';',
-		'\'', '`',   0,
-		'\\', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', 0, '*',
-		0 /*alt*/ , ' ', 0 /* caps lock */,
-		0 /* f1 */, 0, 0, 0, 0, 0, 0, 0, 0, 0 /* f10 */ ,
-		0 /* num lock */, 0 /* scroll lock */, 0 /* home */,
-		0 /* up */, 0 /* page up*/,
-		'-',
-		0 /* left */, 0,
-		0 /* right */,
-		'+',
-		0 /*end */,
-		0 /* down */, 0 /* page down */,
-		0 /* insert */, 0 /* delete */,
-		0, 0, 0, 0 /* f11 */, 0 /* f12 */,
-		0,
-		};
+/* TODO:
+ * - backspace
+ */
 
 
-__isr__ static void
+/* Info: http://www.ee.bgu.ac.il/~microlab/MicroLab/Labs/ScanCodes.htm
+ * Bochs adapts the keycodes to spanish?? Should fix this...
+ */
+char kb_en[256] = "\0\0"
+	"1234567890-=\b"
+	"\tqwertyuiop[]\n"
+	"\0asdfghjkl;'`"
+	"\0\\zxcvbnm,./\0"
+	"\0\0 \0\0\0\0\0"
+	"\0\0\0\0\0\0\0\0"
+	"\0\0\0-\0\0\0+"
+	"\0\0\0\0\0\0\0<";
+char kb_en_caps[256] = "\0\0"
+	"!@#$%^&*()_+\b"
+	"\tQWERTYUIOP{}\n"
+	"\0ASDFGHJKL:\"~"
+	"\0|zxcvbnm<>?\0"
+	"\0\0 \0\0\0\0\0"
+	"\0\0\0\0\0\0\0\0"
+	"\0\0\0-\0\0\0+"
+	"\0\0\0\0\0\0\0>";
+
+
+
+__isr__
 do_keyboard (struct intr_frame r)
 {
 	intr_enter ();
 
 	u8 scancode = inb (0x60);
-	
+
+
+#if 0 /* used for debugging */
+	kprintf ("->%d<-\n", scancode);
+#else
+
 	switch (scancode) {
-	case 0x2a:
+	case 0x2a: /* Left shift */
+	case 0x36: /* Right shift */
 		keyb.shift = 1;
 		break;
-	case 0xaa:
+	case 0xaa: /* Left shift */
+	case 0xb6: /* Right shift */
 		keyb.shift = 0;
 		break;
 	default:
+		{
+		char c;
+		
 		/* 0b1000_0000 means key release (break) */
 		if (scancode & 0x80)
 			break;
 
-		kprintf ("%c", kb_en[scancode]);
+		if (keyb.shift)
+			c = kb_en_caps[scancode];
+		else
+			c = kb_en[scancode];
+
+		kprintf ("%c", c);
+		}
 	}
-
-
+#endif
 
 	lapic_eoi ();
 	intr_exit ();
@@ -68,12 +92,11 @@ do_keyboard (struct intr_frame r)
 void
 init_keyboard (void)
 {
-	idt_set_gate (33, (u64)&do_keyboard, K_CS, GATE_INT);
+	idt_set_gate (1 + 32, (u64)&do_keyboard, K_CS, GATE_INT);
 
 
 	return;
 }
-
 
 
 
