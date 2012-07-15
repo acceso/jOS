@@ -337,6 +337,19 @@ idt_set_gate (u8 num, u64 addr, u16 selector, u16 flags)
 }
 
 
+extern struct _ioapic ioapic;
+
+/* Note: this is only for interrupts */
+void
+intr_install_handler (u8 num, u64 addr)
+{
+	/* kprintf ("->install handler from %d to %d\n",
+	   	num, ioapic.pic[num].dest); */
+
+	/* This stuff or redirections is a mess :( */
+	idt_set_gate (ioapic.pic[num].dest + 32, addr, K_CS, GATE_INT);
+	ioapic_redir_unmask (num);
+}
 
 
 

@@ -123,7 +123,7 @@ vga_writechar (const u8 c)
 		if (col == 0)
 			return;
 		
-		*p = VC (' ', c_front, c_back);
+		*(p - 1) = VC (' ', c_front, c_back);
 		col--;
 	} else if (c == '\t') {
 		if (col >= NCOL - TAB) {

@@ -8,8 +8,9 @@
 #include <lib/cpu.h>
 #include <lib/kernel.h>
 #include <lib/mem.h>
+#include <sys/io.h>
 
-#include "mm_kmalloc.h"
+#include <mm/kmalloc.h>
 #include "intr.h"
 #include "traps.h"
 
@@ -19,18 +20,14 @@
 #define IOWIN		0x10
 
 
-static struct {
-	void *base;
-	u8 id;
-	u8 version;
-} ioapic;
+struct _ioapic ioapic[1];
 
 
 
 static inline void
 ioapic_regsel (u8 reg)
 {
-	*(volatile u32 *)(ioapic.base + IOREGSEL) = reg; 
+	*(volatile u32 *)(ioapic[0].base + IOREGSEL) = reg; 
 }
 
 
@@ -40,7 +37,7 @@ ioapic_read (u8 reg)
 {
 	ioapic_regsel (reg);
 
-	return *(volatile u32 *)(ioapic.base + IOWIN);
+	return *(volatile u32 *)(ioapic[0].base + IOWIN);
 }
 
 
@@ -50,7 +47,7 @@ ioapic_write (u8 reg, u32 val)
 {
 	ioapic_regsel (reg);
 
-	*(volatile u32 *)(ioapic.base + IOWIN) = val;
+	*(volatile u32 *)(ioapic[0].base + IOWIN) = val;
 }
 
 
@@ -62,13 +59,12 @@ ioapic_redir_nint_to_reg (u8 n)
 }
 
 
-#if 0 // will needit..
 static u64
 ioapic_redir_read (u8 n)
 {
 	u64 v;
 
-	u8 reg = ioapic_redir_nint_to_reg (n);
+	u8 reg = ioapic_redir_nint_to_reg (ioapic[0].pic[n].dest);
 
 	v = ioapic_read (reg + 1);
 	v <<= 32;
@@ -76,16 +72,74 @@ ioapic_redir_read (u8 n)
 
 	return v;
 }
-#endif
+
 
 
 static void
 ioapic_redir_write (u8 n, u64 val)
 {
-	u8 reg = ioapic_redir_nint_to_reg (n);
+	if (ioapic[0].pic[n].dest > 16)
+		return;
 
-	ioapic_write (reg, val & 0xffffffff);
-	ioapic_write (reg + 1, val >> 32);
+	/* Might be redirections: */
+	n = ioapic_redir_nint_to_reg (ioapic[0].pic[n].dest);
+
+	ioapic_write (n, val & 0xffffffff);
+	ioapic_write (n + 1, val >> 32);
+}
+
+
+
+static void
+ioapic_redir (u8 n, u64 val)
+{
+	/* This leaves the interrupt masked,
+	 * will be unmasked by drivers */
+	val |= (1 << 16);
+
+	/* Bit 11,
+	 * 0 -> physical mode, just the lapic id
+	 * 1 -> logical mode, set of processors */
+	val |= 0x800;
+
+	/* Because bit11 == 1, this is the set of processors 
+	 * which will recieve the interrupt: */
+	val |= 0xff00000000000000;
+
+
+	/* Level */
+	if (ioapic[0].pic[n].edge == 0)
+		val |= (1 << 15);
+
+	/* Interrupt input pin polarity, 0=high active, 1=low active */
+	if (ioapic[0].pic[n].active_high == 0)
+		val |= (1 << 13);
+
+
+
+	ioapic_redir_write (n, val);
+}
+
+
+
+void
+ioapic_redir_unmask (u8 n)
+{
+	n = ioapic[0].pic[n].dest;
+
+
+/*	if ((ioapic_redir_read (n) >> 13 & 1) == 1)
+		kprintf ("%d----> low active, ", n);
+	else
+		kprintf ("%d----> high active, ", n);
+
+	if ((ioapic_redir_read (n) >> 15 & 1) == 1)
+		kprintf ("level sensitive\n");
+	else
+		kprintf ("edge sensitive\n");
+*/
+
+	ioapic_redir_write (n, ioapic_redir_read (n) & ~(1 << 16));
 }
 
 
@@ -97,22 +151,17 @@ ioapic_init (void)
 {
 	u8 i;
 
-	ioapic.base = (void *)__va (0xfec00000);
+	ioapic_write (IOAPICID, ioapic[0].id);
 
+	ioapic[0].version = (u8)(ioapic_read (IOAPICVER) & 0xff);
 
-	ioapic.id = 0;
-	ioapic_write (IOAPICID, ioapic.id);
-
-	ioapic.version = (u8)(ioapic_read (IOAPICVER) & 0xff);
-
-	for (i = 0; i < 24; i++)
-		ioapic_redir_write (i,
-			0xff00000000000000 + 0x800 + (i + 32));
+	for (i = 0; i < 16; i++)
+		ioapic_redir (i, i + 32);
 
 	lapic_eoi ();
 
 	kprintf ("IOAPIC id=%p ver=%p enabled (%llp)\n", 
-		ioapic.id, ioapic.version, __pa (ioapic.base));
+		ioapic[0].id, ioapic[0].version, __pa (ioapic[0].base));
 }
 
 
@@ -123,18 +172,14 @@ ioapic_init (void)
 
 #define IA32_APIC_BASE_MSR	0x1b
 
-static struct {
-	void *base;
-	u8 id;
-	u8 version;
-} lapic;
+struct _lapic lapic[1];
 
 
 
 u32
 lapic_read (u32 reg)
 {
-	return *(volatile u32 *)(lapic.base + reg);
+	return *(volatile u32 *)(lapic[0].base + reg);
 }
 
 
@@ -142,7 +187,7 @@ lapic_read (u32 reg)
 void
 lapic_write (u32 reg, u32 val)
 {
-	volatile u32 *addr = (volatile u32 *)(lapic.base + reg);
+	volatile u32 *addr = (volatile u32 *)(lapic[0].base + reg);
 
 	*addr = val;
 }
@@ -173,17 +218,18 @@ do_spurious (struct intr_frame r)
 static void
 lapic_init (void)
 {
-	lapic.base = (void *)__va (0xfee00000);
+	if (lapic[0].base == 0)
+		kpanic ("Local apic not found");
 
 	/* Fields:
 	 * 0x800: EN enable/disable
 	 * 0x100: BSP: bootstrap cpu core */
 	msr_write (IA32_APIC_BASE_MSR,
-		0x800 | 0x100 | (u64)__pa (lapic.base));
+		0x800 | 0x100 | (u64)__pa (lapic[0].base));
 
 
-	lapic.id = (u8)((lapic_read (APIC_ID) >> 24) & 0xf);
-	lapic.version = (u8)(lapic_read (APIC_VERSION) & 0xff);
+	lapic[0].id = (u8)((lapic_read (APIC_ID) >> 24) & 0xf);
+	lapic[0].version = (u8)(lapic_read (APIC_VERSION) & 0xff);
 
 	/* Spurious interrupt handler */
 	idt_set_gate (SPURIOUS_INTR, (u64)&do_spurious, K_CS, GATE_INT);
@@ -213,16 +259,27 @@ lapic_init (void)
 
 
 
+static void
+pic_disable (void)
+{
+	/* We're going to use the lapic.
+	 * this disables the pic: */
+	outb (0xa1, 0xff);
+	outb (0x21, 0xff);
+}
+
 
 void
 init_interrupts (void)
 {
+	pic_disable ();
+
 	lapic_init ();
 
 	ioapic_init ();
 
 	kprintf ("LAPIC id=%p ver=%p enabled (%llp)\n", 
-		lapic.id, lapic.version, __pa (lapic.base));
+		lapic[0].id, lapic[0].version, __pa (lapic[0].base));
 }
 
 

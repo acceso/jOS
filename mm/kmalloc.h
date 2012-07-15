@@ -1,6 +1,6 @@
 
-#ifndef MM_KMALLOC
-#define MM_KMALLOC
+#ifndef KMALLOC
+#define KMALLOC
 
 
 #include <stdint.h>
@@ -19,6 +19,6 @@ void heap_init (void);
 
 
 
-#endif /* MM_KMALLOC */
+#endif /* KMALLOC */
 
 

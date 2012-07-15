@@ -10,7 +10,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <lib/kernel.h>
+#include <lib/mem.h>
+#include <kernel/cpu.h>
+#include <kernel/intr.h>
+#include <sys/io.h>
 
+#include "acpi.h"
 
 
 #define RSDP_SIG	0x2052545020445352 /* "RSDP PTR " */
@@ -47,48 +52,120 @@ struct acpi_apic {
 		struct { /* When type 0, lapic info */
 			u8 cpuid;
 			u8 lapicid;
-			u32 flags; /* Just one: enabled (bit 0) */
-		};
+			u32 flags0; /* Just one: enabled (bit 0) */
+		} __attribute__((__packed__));
 		struct { /* When type 1, ioapic info */
 			u8 ioapicid;
-			u8 reserved;
+			u8 reserved1;
 			u32 ioapicaddr;
-			u32 ioapic_base;
-		};
+			u32 gsib;
+		} __attribute__((__packed__));
 		struct { /* When type 2, interrupt source override */
 			u8 bus;
 			u8 source;
 			u32 gsi;
-			u16 flags;
-		};
+			u16 flags2;
+		} __attribute__((__packed__));
 		/* There are types for nmi, lapic nmi, address override
 		 * and for sapic (ia64 apic) and x2apic */
 	};
-};
+} __attribute__((__packed__));
 
 
+
+
+extern struct _ioapic ioapic[];
+extern struct _lapic lapic[];
+extern struct _sys sys;
+
+/* For now, just one lapic and ioapic are supported :( */
 static void
-acpi_walk_madt (struct acpi_apic *t, s32 l)
+acpi_walk_madt (void *t, s32 l)
 {
-	kprintf ("-->%d<--\n", t->type);
-	kprintf ("-->%d<--\n", t->l);
-	return;
+	struct acpi_apic *a;
+	u8 i;
+
+
+	/* Default mappings between old 8259 and ioapic,
+	 * the overrides will change this information */
+	for (i = 0; i < 16; i++) {
+		ioapic[0].pic[i].dest = i;
+		ioapic[0].pic[i].edge = 1;
+		ioapic[0].pic[i].active_high = 1;
+	}
+
+	sys.cpu[0].lapic = &lapic[0];
+	lapic[0].base = (void *)__va (*(u32 *)(u64)(t + 0));
+
+
+	if (*(u32 *)(t + 4) & 0x1)
+		sys.has8259 = 1;
+
+
+	/* 8 bytes consumed so far */
+	l = l - 8;
+	/* Points to "APIC Structure[0]" */
+	a = (struct acpi_apic *)(t + 8);
+
 
 	while (l > 0) {
+		if (a->l == 0)
+			break;
 
-		switch (t->type) {
-		case 0:
+		switch (a->type) {
+		case 0: /* Processor Local APIC */
+			lapic[0].id = a->lapicid;
+			sys.cpu[0].id = a->cpuid;
+
 			break;
-		case 1:
+		case 1: /* I/O APIC */
+			ioapic[0].id = a->ioapicid;
+			ioapic[0].base = (void *)__va (a->ioapicaddr);
+
 			break;
-		case 2:
+		case 2: /* Interrupt Source Override */
+			if (a->source > 16 || a->gsi > 16)
+				break;
+
+
+			kprintf ("  PIC Redirect %d -> %d", 
+				a->source, a->gsi);
+
+			ioapic[0].pic[a->source].dest = a->gsi;
+
+
+			/* 0b00 bus default (edge)
+			 * 0b01 edge
+			 * 0b11 level */
+			if (((a->flags2 >> 2) & 0x3) == 0x3) {
+				ioapic[0].pic[a->gsi].edge = 0;
+				kprintf (" (level, ");
+			} else
+				kprintf (" (edge, ");
+
+
+			/* 0b00 bus default (active low),
+			 * 0b01 active high, 
+			 * 0b11 active low */
+			if ((a->flags2 & 0x3) != 0x1) {
+				ioapic[0].pic[a->gsi].active_high = 0;
+				kprintf ("low)\n");
+			} else
+				kprintf ("high)\n");
+
+
+			/* Thats all folks :) */
+
+			break;
+		default:
 			break;
 		}
 
-		l -= t->l;
-		t += t->l;
+		l -= a->l;
+		a = (struct acpi_apic *)((u64)a + a->l);
 	}
 
+	return;
 }
 
 
@@ -141,31 +218,25 @@ struct rsdp {
 
 
 
-static u8
-apic_csum (void *p, u8 bytes)
-{
-	u8 csum = 0;
-	u8 *pp = (u8 *)p;
-
-	while ((u64)pp < (u64)p + bytes)
-		csum += *pp++;
-
-	return csum;
-}
-
-
 static u64 ranges[][2] = {
-	{ 0x9fc00 , 0xa0000 }, /* Extended BIOS Data Area (EBDA) */
-	{ 0xe0000 , 0xfffff }, /* BIOS ROM */
-	{ 0x00000 , 0x00000 }
+	{ 0x9fc00, 0xa0000 }, /* EBDA Extended BIOS Data Area */
+	{ 0xe0000, 0xfffff }, /* BIOS ROM */
+	{ 0x00000, 0x00000 }
 };
 
 
-static void *
-search_table (u64 signature)
+void *
+acpi_search_table (u64 signature)
 {
+	u8 siglen = 64;
 	u8 i = 0;
 	u64 *p;
+
+
+	/* Will fail if a 64 bit signature is something like:
+	 * "\0\0\0\0etc." but afaik there are no such signatures.. */
+	if ((signature & 0xffffffff) == signature)
+		siglen = 32;
 
 	do {
 		if (ranges[i] == 0)
@@ -173,18 +244,21 @@ search_table (u64 signature)
 
 		for (p = (u64 *)ranges[i][0]; p < (u64 *)ranges[i][1];
 			p += 2) {
-			if (*p != signature)
-				continue;
 
-			return (void *)p;
+			if (siglen == 64 && *p == signature)
+				return (void *)p;
+
+			if (siglen == 32 && *(u32 *)p == (u32)signature)
+				return (void *)p;
+
 		}
 
 	} while (ranges[++i][0] != 0);
 
 
 	return NULL;
-
 }
+
 
 
 
@@ -196,16 +270,15 @@ init_acpi (void)
 	char oem[7];
 	u32 *p;
 
-
 	kprintf ("Parsing ACPI tables:\n");
 
 
-	rsdpp = (struct rsdp *)search_table (RSDP_SIG);
+	rsdpp = (struct rsdp *)acpi_search_table (RSDP_SIG);
 	if (rsdpp == NULL || rsdpp->rsdt == 0)
 		kpanic ("No valid ACPI tables.");
 
 
-	if (apic_csum (rsdpp, 20) != 0)
+	if (acpi_csum (rsdpp, 20) != 0)
 		kpanic ("Wrong checksum in rsdp\n");
 
 
@@ -221,7 +294,7 @@ init_acpi (void)
 	if (h->sig != RSDT_SIG)
 		kpanic ("Invalid RSDT in ACPI table\n");
 
-	if (apic_csum (h, h->l) != 0)
+	if (acpi_csum (h, h->l) != 0)
 		kpanic ("Wrong checksum in rsdt\n");
 
 
@@ -230,7 +303,7 @@ init_acpi (void)
 		struct acpi_header *h2 = (struct acpi_header *)(u64)*p;
 
 
-		if (apic_csum (h2, h2->l) != 0)
+		if (acpi_csum (h2, h2->l) != 0)
 			continue;
 
 		/*kprintf ("%s\n", &h2->sig);*/
@@ -240,8 +313,7 @@ init_acpi (void)
 			/* This is the mother of the lamb!!
 			 * A bit confusing because the signature (APIC) 
 			 * is different from the table name! (MADT) */
-			acpi_walk_madt (
-				(struct acpi_apic *)&h2->entry,
+			acpi_walk_madt (&h2->entry,
 				h2->l - sizeof (struct acpi_header) + 4
 				);
 			break;
@@ -252,6 +324,9 @@ init_acpi (void)
 			acpi_walk_ssdt (&h2->entry);
 			break;
 		case HPET_SIG:
+			break;
+		default:
+			/*kprintf ("------>%s\n", &h2->sig);*/
 			break;
 		}
 	}

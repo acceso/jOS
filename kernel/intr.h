@@ -11,6 +11,18 @@
 #define LAPIC_TIMER_INTR	64
 
 
+
+struct _ioapic {
+	void *base;
+	u8 id;
+	u8 version;
+	struct {
+		u8 dest;
+		u8 edge;
+		u8 active_high;
+	} pic[16];
+};
+
 #define IOAPICID	0x0
 #define IOAPICVER	0x1
 #define IOAPICARB	0x2
@@ -54,12 +66,25 @@
 #define LAPIC_VERSION	0x10
 
 
+struct _lapic {
+	void *base;
+	u8 id;
+	u8 version;
+};
+
 
 void lapic_eoi (void);
 u32 lapic_read (u32 reg);
 void lapic_write (u32 reg, u32 val);
 
+void ioapic_redir_unmask (u8 n);
 
+
+static inline void
+interrupts_disable (void)
+{
+	asm volatile ("cli\n\t");
+}
 
 
 static inline void

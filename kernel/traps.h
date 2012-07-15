@@ -112,9 +112,11 @@ struct exceptp_frame {
 
 
 
-void init_exceptions (void);
 
 void idt_set_gate (u8 num, u64 addr, u16 selector, u16 flags);
+void intr_install_handler (u8 num, u64 addr);
+void init_exceptions (void);
+
 
 
 

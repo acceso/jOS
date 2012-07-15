@@ -77,7 +77,11 @@ do_keyboard (struct intr_frame r)
 		else
 			c = kb_en[scancode];
 
-		kprintf ("%c", c);
+		switch (c) {
+		default:
+			kprintf ("%c", c);
+		}
+
 		}
 	}
 #endif
@@ -92,7 +96,7 @@ do_keyboard (struct intr_frame r)
 void
 init_keyboard (void)
 {
-	idt_set_gate (1 + 32, (u64)&do_keyboard, K_CS, GATE_INT);
+	intr_install_handler (1, (u64)&do_keyboard);
 
 
 	return;

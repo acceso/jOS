@@ -3,18 +3,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/io.h>
+#include <lib/cpu.h>
 #include <lib/kernel.h>
 #include <lib/spinlocks.h>
+#include <kernel/cpu.h>
 #include <kernel/intr.h>
 #include <kernel/traps.h>
 
 
 #include "timer.h"
 
-
-/* This sucks.... bochs has it connected to ioapic's int 0
- * and qemu (as do most of real computers have it to int 2) */
-#define PIT_INT		2
 
 
 /* interrupts per second. */
@@ -27,42 +25,20 @@ static u64 nticks;
 
 
 
-#define PIT_C0		0x40
-#define PIT_C1		0x41
-#define PIT_C2		0x42
-/* xx		-> Channel: 00 (0), 01 (1), 10 (2), 11 (read-back)
- *   xx		-> Mode: 01 (low), 10 (high), 11 (low then high)
- *     xxx	-> Operating mode: 000 one shot, 010 periodic timer
- *        x	-> 0 for binary, 1 for bcd (4 digits)
+/* xx	    -> Channel: 00 (0), 01 (1), 10 (2), 11 (read-back)
+ *   xx	    -> Mode: 01 (low), 10 (high), 11 (low then high)
+ *	       00 (latch count value cmd)
+ *     xxx  -> Operating mode: 000 intr on tc, 001 hw re-triggerable one-show,
+ *	       010 rate generator, 
+ *        x -> 0 for binary, 1 for bcd (4 digits)
  */
 #define PIT_MCR 	0x43
 
-#define PIT_FREQ	1193182 /* hz */
+#define PIT_C2GATE	0x61
 
 
-static spin_lock_t pit_calibrated;
+extern struct _sys sys;
 static u64 cpu_hz;
-
-
-
-__isr__
-do_pit (struct intr_frame r)
-{
-	intr_enter ();
-
-	if (spin_lock_locked (&pit_calibrated)) {
-  		cpu_hz = (ticks () - cpu_hz) * 100;
-  		kprintf ("Cpu speed calibrated to: %ldMhz\n",
-			div (cpu_hz, 1000000));
-  	  	spin_lock_unlock (&pit_calibrated);
-	} else {
-		kprintf ("pit!\n");
-	}
-
-	lapic_eoi ();
-
-	intr_exit ();
-}
 
 
 
@@ -73,7 +49,7 @@ nsleep (u64 nsecs)
 
 	while (ticks () < etsc)
 		/* TODO: can't yield yet :( */
-		asm volatile ("hlt\t\n");
+		yield ();
 }
 
 
@@ -86,28 +62,99 @@ usleep (u64 usecs)
 
 
 
+void
+msleep (u64 msecs)
+{
+	usleep (msecs * 1000);
+}
+
+
+
+__isr__
+do_pit (struct intr_frame r)
+{
+	intr_enter ();
+
+	/*kprintf ("pit!\n");*/
+
+	lapic_eoi ();
+
+	intr_exit ();
+}
+
+
+
+static u16
+pit_read_count (u8 chan)
+{
+	/* Latches the current count value */
+	outb (PIT_MCR, chan << 6);
+
+	/* Read pit count: */
+	return inb (0x40 + chan) | inb (0x40 + chan) << 8;
+}
+
+
+
+static
+void pit_set_timer (u8 channel, u8 mode, u8 opmode, u16 count)
+{
+	interrupts_disable (); /* --------------- */
+
+
+	outb (PIT_MCR, (channel << 6) | (mode << 4) | (opmode << 1));
+
+	if (mode & 0b01)
+		outb (0x40 + channel, count & 0xff);
+	if (mode & 0b10)
+		outb (0x40 + channel, count >> 8);
+
+
+	interrupts_enable (); /* --------------- */
+}
+
+
+
+static
+void tsc_calibration_withpit (u8 cpu)
+{
+	/* Enable channel 2 but no speaker */
+	/*outb (PIT_C2GATE, (inb (PIT_C2GATE) & ~0b10) | 0b1);*/
+
+	pit_set_timer (2, 0b11, 0b010, 0);
+
+	cpu_hz = ticks ();
+
+	while (pit_read_count (2) > (u16)-1 - 11932)
+		;
+
+	cpu_hz = (ticks () - cpu_hz) * 100;
+
+	/* Stop the counter */
+	outb (PIT_C2GATE, 0);
+
+
+	sys.cpu[cpu].hz = cpu_hz;
+}
+
+
 
 static
 void init_pit (void)
 {
-	pit_calibrated = SPIN_LOCK_LOCKED;
+	/* 65536: --> 1193181.66 / 65536 => 18.2065 hz
+	 * We want 10 ms (100 hz) so: 1193181.66 / x => 100 hz, x == 11932 */
+	pit_set_timer (0, 0b11, 0b000, 11932);
 
-	/* 0b00_11_000_0 => ch 0, low and hi, one shot timer, binary */
-	/*outb (PIT_MCR, 0x34);*/
-	outb (PIT_MCR, 0x30);
+	intr_install_handler (0, (u64)&do_pit);
 
-	/* 11932 = PIT_FREQ / 10 --> 10 ms */
-	outb (PIT_C0, 11932 & 0xff);
-	outb (PIT_C0, 11932 >> 8);
 
-	cpu_hz = ticks ();
 
-	idt_set_gate (PIT_INT + 32, (u64)&do_pit, K_CS, GATE_INT);
+	tsc_calibration_withpit (0);
+	kprintf ("Cpu speed calibrated to: %ldMhz\n", div (cpu_hz, 1000000));
 
-	spin_lock_lock (&pit_calibrated);
-	spin_lock_unlock (&pit_calibrated);
+
 }
-
 
 
 
@@ -143,12 +190,16 @@ init_timers (void)
 {
 	u32 lapictic;
 
+
 	init_pit ();
+return;
+
 
 	lapictic = lapic_calibration (1000);
 
 
-	idt_set_gate (LAPIC_TIMER_INTR, (u64)&do_lapic, K_CS, GATE_INT);
+	intr_install_handler (LAPIC_TIMER_INTR, (u64)&do_lapic);
+
 
 	/* Divide configuration register (timer divisor), divide by 1 */
 	lapic_write (APIC_TDCR, 0xb);
@@ -163,6 +214,7 @@ init_timers (void)
 	
 	return;
 }
+
 
 
 

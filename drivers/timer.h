@@ -19,6 +19,7 @@ ticks (void)
 
 void nsleep (u64 nsecs);
 void usleep (u64 usecs);
+void msleep (u64 msecs);
 
 void init_timers (void);
 

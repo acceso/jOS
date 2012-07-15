@@ -93,7 +93,7 @@ _start:
 	movl $pml2 + 0x7, pml3
 
 #if 1
-	/* 0x9f is like 0x87 but no caching */
+	/* 0x9f is like 0x87 but no caching, TODO: enable! */
 	map_pde $pml2b, $0x9f + 0x40000000
 	map_pde $pml2c, $0x9f + 0x80000000
 	map_pde $pml2d, $0x9f + 0xc0000000

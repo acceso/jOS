@@ -69,8 +69,8 @@ init_disks (void)
 	channel_reset (1);
 
 
-	idt_set_gate (14 + 32, (u64)&do_ide, K_CS, GATE_INT);
-	idt_set_gate (15 + 32, (u64)&do_ide, K_CS, GATE_INT);
+	intr_install_handler (14, (u64)&do_ide);
+	intr_install_handler (15, (u64)&do_ide);
 }
 
 

@@ -12,6 +12,13 @@ static inline void
 outb (u16 port, u8 val)
 {
 	asm volatile ("outb %1, %0" : : "dN" (port), "a" (val));
+
+	/* Could be needed on real hardware: */
+	/*asm volatile (
+			"jmp 1f\n"
+		"1:\n\t"
+			"jmp 1f\n"
+		"1:\n\t"); */
 }
 
 

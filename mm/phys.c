@@ -8,7 +8,7 @@
 #include <lib/mem.h>
 
 #include "mm.h"
-#include "mm_kmalloc.h"
+#include "kmalloc.h"
 
 
 

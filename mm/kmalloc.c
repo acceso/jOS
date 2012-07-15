@@ -7,9 +7,9 @@
 #include <lib/list.h>
 #include <lib/mem.h>
 
-#include "mm_phys.h"
 #include "mm.h"
-#include "mm_kmalloc.h"
+#include "phys.h"
+#include "kmalloc.h"
 
 
 

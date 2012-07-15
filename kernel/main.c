@@ -1,6 +1,6 @@
 
 
-#define VERSION "0.0.0.10"
+#define VERSION "0.0.0.11"
 
 
 #include <stdint.h>
@@ -10,10 +10,10 @@
 #include <drivers/timer.h>
 #include <drivers/vga.h>
 
-#include <kernel/mm.h>
 #include <kernel/intr.h>
 #include <kernel/acpi.h>
 #include <kernel/traps.h>
+#include <mm/mm.h>
 
 
 
@@ -23,8 +23,8 @@ kmain (void)
 	cls ();
 	puts ("Booting jOS kernel " VERSION "!\n");
 
-	init_memory ();
 	init_acpi ();
+	init_memory ();
 	init_exceptions ();
 	init_interrupts ();
 

@@ -6,8 +6,8 @@
 #include <lib/bitset.h>
 
 #include "mm.h"
-#include "mm_phys.h"
-#include "mm_kmalloc.h"
+#include "phys.h"
+#include "kmalloc.h"
 
 
 

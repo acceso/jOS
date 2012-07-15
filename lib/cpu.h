@@ -1,9 +1,40 @@
 
-#ifndef CPU_H
-#define CPU_H
+#ifndef LCPU_H
+#define LCPU_H
 
 
 #include <stdint.h>
+
+
+
+/* This will come handy */
+union _cpuregs32 {
+	struct {
+		u32 eax;
+		u32 ebx;
+		u32 edx;
+		u32 ecx;
+	};
+	struct {
+		u64 eaxebx;
+		u64 edxecx;
+	};
+	struct {
+		u32 eax;
+		char s[12];
+		u8 c; /* This is for the string termiator */
+	};
+};
+
+
+static inline void
+cpuid (union _cpuregs32 *r)
+{
+	asm volatile ("cpuid\n\t"
+		:"=a" (r->eax), "=b" (r->ebx),
+		 "=d" (r->edx), "=c" (r->ecx)
+		:"0" (r->eax));
+}
 
 
 
@@ -36,7 +67,13 @@ msr_write (u32 msr, u64 data)
 
 
 
+static inline void
+yield (void)
+{
+	asm volatile ("nop\n\t");
+}
 
-#endif /* CPU_H */
+
+#endif /* LCPU_H */
 
 

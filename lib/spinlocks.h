@@ -7,16 +7,16 @@
 #include <lib/bitset.h>
 
 
-typedef u64 spin_lock_t;
+typedef u64 spinlock_t;
 
 
-#define SPIN_LOCK_LOCKED	1
-#define SPIN_LOCK_UNLOCKED	0
+#define SPINLOCK_LOCKED	1
+#define SPINLOCK_UNLOCKED	0
 
 
 
 static inline void
-spin_lock_lock (spin_lock_t *l)
+spinlock_lock (spinlock_t *l)
 {
 	asm volatile (
 	"1:\n\t"
@@ -32,7 +32,7 @@ spin_lock_lock (spin_lock_t *l)
 
 
 static inline void
-spin_lock_unlock (spin_lock_t *l)
+spinlock_unlock (spinlock_t *l)
 {
 	bitclear ((u64 *)&l, 0);
 }
@@ -40,17 +40,17 @@ spin_lock_unlock (spin_lock_t *l)
 
 
 static inline void
-spin_lock_waiton (spin_lock_t *l)
+spinlock_barrier (spinlock_t *l)
 {
-	spin_lock_lock (l);
-	spin_lock_unlock (l);
+	spinlock_lock (l);
+	spinlock_unlock (l);
 }
 
 
 
 /* TODO: WARNING!! bittest is not atomic! (yet) */
 static inline u8
-spin_lock_locked (spin_lock_t *l)
+spinlock_locked (spinlock_t *l)
 {
 	return bittest (*l, 0);
 }

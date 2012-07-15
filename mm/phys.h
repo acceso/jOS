@@ -1,6 +1,6 @@
 
-#ifndef MM_PHYS
-#define MM_PHYS
+#ifndef PHYS
+#define PHYS
 
 
 
@@ -19,6 +19,6 @@ void free_pages (u64 *addr);
 void free_pages_pfn (u64 pfn);
 
 
-#endif /* MM_PHYS */
+#endif /* PHYS */
 
 

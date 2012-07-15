@@ -7,10 +7,10 @@ PAGE_OFFSET = 0xffff800000000000
 
 
 SOURCES = \
-	boot/boot32.o boot/main.o \
+	boot/boot32.o kernel/main.o \
 	drivers/disk.o drivers/keyboard.o drivers/timer.o drivers/vga.o \
-	kernel/acpi.o kernel/mm.o kernel/mm_kmalloc.o kernel/mm_phys.o \
-		kernel/traps.o kernel/intr.o \
+	kernel/acpi.o kernel/cpu.o kernel/traps.o kernel/intr.o \
+	mm/mm.o mm/kmalloc.o mm/phys.o \
 	include/stdio.o include/stdlib.o include/string.o \
 	lib/kernel.o lib/mem.o \
 	$()
