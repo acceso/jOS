@@ -1,10 +1,14 @@
 
 
-#include <stdint.h>
-#include <stdarg.h>
+
 #include <ctype.h>
-#include <string.h>
+#include <stdarg.h>
+#include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
+
+#include <lib/debug.h>
+
 #include <drivers/vga.h>
 
 #include "stdio.h"

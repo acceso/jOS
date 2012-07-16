@@ -6,6 +6,8 @@
 #include <stdint.h>
 
 
+
+
 /* The problem with this is that is not a number
  * and it uses storage, could be useful though: */
 #define ACPI_MAGIC(_x)	(*(u32 *)_x)

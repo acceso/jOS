@@ -141,7 +141,6 @@ start64:
 	//hlt
 	jmp 1b
 
-
 	.data
 
 
@@ -155,10 +154,17 @@ gdt_ptr:
 gdt:
 	.quad 0x0000000000000000
 k_cs:
-	.quad 0x00AF98000000FFFF
+	.quad 0x00af98000000ffff
 k_ds:
-	.quad 0x008F92000000FFFF
+	.quad 0x008f92000000ffff
+	/* This sucks... I should export gdt instead
+	 * anyway, if this gets moved, so has to be 
+	 * the argument to ltr */
+	.global tssd
+tssd:
+	.quad 0x0000000000000000
 gdt_end:
+
 
 
 
@@ -166,7 +172,6 @@ gdt_end:
 
 	.align 4096
 
-/* Will reuse these memory locations when in 64-bit mode */
 	.lcomm pml4, 0x1000
 	.lcomm pml3, 0x1000
 	.lcomm pml2, 0x1000
@@ -175,9 +180,5 @@ gdt_end:
 	.lcomm pml2c, 0x1000
 	.lcomm pml2d, 0x1000
 #endif
-
-	.set STACKSIZE, 0x1000
-	.lcomm stack, STACKSIZE
-
 
 

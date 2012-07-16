@@ -1,19 +1,24 @@
 
 
-#define VERSION "0.0.0.11"
+#define VERSION "0.0.0.14"
 
 
 #include <stdint.h>
 #include <stdio.h>
+
+#include <lib/debug.h>
+#include <mm/mm.h>
+
 #include <drivers/disk.h>
 #include <drivers/keyboard.h>
-#include <drivers/timer.h>
 #include <drivers/vga.h>
 
-#include <kernel/intr.h>
 #include <kernel/acpi.h>
+#include <kernel/cpu.h>
+#include <kernel/intr.h>
+#include <kernel/timers.h>
 #include <kernel/traps.h>
-#include <mm/mm.h>
+
 
 
 
@@ -23,29 +28,34 @@ kmain (void)
 	cls ();
 	puts ("Booting jOS kernel " VERSION "!\n");
 
+	init_cpu ();
 	init_acpi ();
-	init_memory ();
 	init_exceptions ();
 	init_interrupts ();
+	init_memory ();
 
 	/* Abrimos la caja de pandora: */
 	interrupts_enable ();
 
-	init_keyboard ();
 	init_timers ();
+	init_keyboard ();
 
 #if 0
 	init_disks ();
 
-	
-	{
-	u64 i = 0;
-	while (1) {
-		/*usleep (1000000);*/
-		kprintf ("ejem! %d\n", i++);
-	}
-	}
 #endif
+	{
+	int i = 6;
+	while (--i) {
+		kprintf ("%d", i);
+		msleep (1000);
+	}
+	}
+	
+	/* This should be temporal, just until we could fork init,
+	 * clone threads, tty layer... */
+	init_input ();
+
 	return 0;
 }
 

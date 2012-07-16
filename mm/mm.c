@@ -2,8 +2,10 @@
 
 #include <stdint.h>
 #include <stdio.h>
-#include <lib/kernel.h>
+
 #include <lib/bitset.h>
+#include <lib/debug.h>
+#include <lib/kernel.h>
 
 #include "mm.h"
 #include "phys.h"
@@ -27,7 +29,7 @@ typedef struct multiboot_info {
 	u32 config_table;
 	u32 boot_loader_name;
 	u32 apm_table;
-} multiboot_info_t;
+} __attribute__((packed)) multiboot_info_t;
 
 
 

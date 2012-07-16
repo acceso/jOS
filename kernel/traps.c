@@ -2,11 +2,15 @@
 
 #include <stdint.h>
 #include <stdio.h>
-#include <drivers/vga.h>
+
+#include <lib/debug.h>
 #include <lib/kernel.h>
+
+#include <drivers/vga.h>
 
 #include "traps.h"
 #include "intr.h"
+
 
 
 
@@ -21,13 +25,13 @@ set_idt_reg (u64 base, u16 limit)
 	idt_reg.base = base;
 	idt_reg.limit = limit;
 
-	asm volatile("lidt %0"::"m" (idt_reg));
+	asm volatile ("lidt %0"::"m" (idt_reg));
 }
 
 
 
 __isr__
-exc_generic_handler ()
+exc_generic_handler (struct intr_frame r)
 {
 	intr_enter ();
 
@@ -135,93 +139,74 @@ exc_7_nomathco (struct intr_frame r)
 
 
 __isr__
-exc_8_doublefault (struct exceptp_frame r)
+exc_8_doublefault (struct intr_frame_err r)
 {
-	intr_enter ();
+	intr_err_enter ();
 
-	kprintf ("Double fault!\n");
+	kprintf ("Double fault! (%llp)\n", r.ecode);
+	/*stack_frame_err_dump (&r);*/
 
-//	kprintf ("\n%llp\n", &r);
-
-#if 0 // Meter esto en una función!
-	kprintf ("r11    (%llp)\n", r.r11);
-	kprintf ("r10    (%llp)\n", r.r10);
-	kprintf ("r9     (%llp)\n", r.r9);
-	kprintf ("r8     (%llp)\n", r.r8);
-	kprintf ("rdi    (%llp)\n", r.rdi);
-	kprintf ("rsi    (%llp)\n", r.rsi);
-	kprintf ("rdx    (%llp)\n", r.rdx);
-	kprintf ("rcx    (%llp)\n", r.rcx);
-	kprintf ("rax    (%llp)\n", r.rax);
-	kprintf ("ecode  (%llp)\n", r.ecode);
-	kprintf ("retrip (%llp)\n", r.retrip);
-	kprintf ("cs     (%llp)\n", r.cs);
-	kprintf ("rflags (%llp)\n", r.rflags);
-	kprintf ("retrsp (%llp)\n", r.retrsp);
-	kprintf ("ss     (%llp)\n", r.ss);
-#endif
-
-	intr_exit ();
+	intr_err_exit ();
 }
 
 
 
 __isr__
-exc_10_tss_inval (struct exceptp_frame r)
+exc_10_tss_inval (struct intr_frame_err r)
 {
-	intr_enter ();
+	intr_err_enter ();
 
 	kprintf ("Invalid TSS!\n");
 
-	intr_exit ();
+	intr_err_exit ();
 }
 
 
 
 __isr__
-exc_11_nosuchsegment (struct exceptp_frame r)
+exc_11_nosuchsegment (struct intr_frame_err r)
 {
-	intr_enter ();
+	intr_err_enter ();
 
 	kprintf ("Segment not present!\n");
 
-	intr_exit ();
+	intr_err_exit ();
 }
 
 
 
 __isr__
-exc_12_stack (struct exceptp_frame r)
+exc_12_stack (struct intr_frame_err r)
 {
-	intr_enter ();
+	intr_err_enter ();
 
 	kprintf ("Stack exception!\n");
 
-	intr_exit ();
+	intr_err_exit ();
 }
 
 
 
 __isr__
-exc_13_gp (struct exceptp_frame r)
+exc_13_gp (struct intr_frame_err r)
 {
-	intr_enter ();
+	intr_err_enter ();
 
 	kprintf ("General protection fault!\n");
 
-	intr_exit ();
+	intr_err_exit ();
 }
 
 
 
 __isr__
-exc_14_pf (struct exceptp_frame r)
+exc_14_pf (struct intr_frame_err r)
 {
-	intr_enter ();
+	intr_err_enter ();
 
 	kprintf ("Page fault!\n");
 
-	intr_exit ();
+	intr_err_exit ();
 }
 
 
@@ -239,13 +224,13 @@ exc_16_math_pending (struct intr_frame r)
 
 
 __isr__
-exc_17_misalignment (struct exceptp_frame r)
+exc_17_misalignment (struct intr_frame_err r)
 {
-	intr_enter ();
+	intr_err_enter ();
 
 	kprintf ("Misaligned memory access!\n");
 
-	intr_exit ();
+	intr_err_exit ();
 }
 
 
@@ -313,7 +298,7 @@ static struct {
 
 
 
-void
+static void
 idt_set_gate (u8 num, u64 addr, u16 selector, u16 flags)
 {
 	/* No, i'm not smoking crack :)
@@ -343,12 +328,26 @@ extern struct _ioapic ioapic;
 void
 intr_install_handler (u8 num, u64 addr)
 {
-	/* kprintf ("->install handler from %d to %d\n",
-	   	num, ioapic.pic[num].dest); */
-
 	/* This stuff or redirections is a mess :( */
-	idt_set_gate (ioapic.pic[num].dest + 32, addr, K_CS, GATE_INT);
-	ioapic_redir_unmask (num);
+
+	switch (num) {
+	case 0 ... 31: /* Stuff connected to the io-apic: */
+		/* kprintf ("->install handler from %d to %d\n",
+			num, ioapic.pic[num].dest); */
+
+		idt_set_gate (ioapic.pic[num].dest + 32, addr, K_CS, GATE_INT);
+		ioapic_redir_unmask (num);
+
+		break;
+	case 32 ... 63: /* IOAPIC interrupts will be moved here */
+
+		break;
+	case 64 ... 255: /* Available */
+		idt_set_gate (num, addr, K_CS, GATE_INT);
+		break;
+
+	}
+
 }
 
 

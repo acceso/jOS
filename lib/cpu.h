@@ -27,6 +27,7 @@ union _cpuregs32 {
 };
 
 
+/* http://www.sandpile.org/ia32/cpuid.htm */
 static inline void
 cpuid (union _cpuregs32 *r)
 {
@@ -66,6 +67,16 @@ msr_write (u32 msr, u64 data)
 }
 
 
+static inline void
+iowait (void)
+{
+	asm volatile (
+		"jmp 1f\n\t"
+		"1:\n\t"
+		"jmp 1f\n\t"
+		"1:\n\t"
+		);
+}
 
 static inline void
 yield (void)

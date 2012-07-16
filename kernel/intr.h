@@ -6,9 +6,13 @@
 #include <stdint.h>
 
 
-#define SPURIOUS_INTR		32
-#define APIC_E_INTR		34
-#define LAPIC_TIMER_INTR	64
+/* Vector for spurious interrupts: */
+#define SPURIOUS_INTR		64
+/* Interrupt vector on lapic error: */
+#define APIC_E_INTR		65
+/* Interrupt vector for every lapic tick: */
+#define LAPIC_TIMER_INTR	66
+
 
 
 
@@ -73,11 +77,32 @@ struct _lapic {
 };
 
 
-void lapic_eoi (void);
-u32 lapic_read (u32 reg);
-void lapic_write (u32 reg, u32 val);
+extern struct _lapic lapic[1];
 
-void ioapic_redir_unmask (u8 n);
+
+static inline u32
+lapic_read (u32 reg)
+{
+	return *(volatile u32 *)(lapic[0].base + reg);
+}
+
+
+
+static inline void
+lapic_write (u32 reg, u32 val)
+{
+	volatile u32 *addr = (volatile u32 *)(lapic[0].base + reg);
+
+	*addr = val;
+}
+
+
+
+static inline void
+lapic_eoi (void)
+{
+	lapic_write (APIC_EOI, 0);
+}
 
 
 static inline void
@@ -93,6 +118,10 @@ interrupts_enable (void)
 	asm volatile ("sti\n\t");
 }
 
+
+
+
+void ioapic_redir_unmask (u8 n);
 
 void init_interrupts (void);
 

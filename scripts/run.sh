@@ -9,7 +9,7 @@ sudo su -c "umount /mnt/tmp"
 
 if [ "$1" = "bochs" ]; then
 	# nota: compilar bochs más o menos así:
-	# ./configure --enable-x86-64 --enable-smp --enable-long-phy-address --enable-acpi --enable-pci --enable-1g-pages --enable-configurable-msrs --enable-fast-function-calls --enable-host-specific-asms --enable-show-ips --enable-debugger --enable-debugger-gui --enable-all-optimizations --enable-readline --enable-disasm --prefix=/opt/bochs-20100402/ 
+	# ./configure --enable-x86-64 --enable-smp --enable-long-phy-address --enable-acpi --enable-pci --enable-1g-pages --enable-configurable-msrs --enable-fast-function-calls --enable-host-specific-asms --enable-show-ips --enable-debugger --enable-x86-debugger --enable-iodebug --enable-debugger-gui --enable-all-optimizations --enable-vmx --enable-logging --enable-readline --enable-disasm --prefix=/opt/bochs-20100402/ 
 
 	/opt/bochs/bin/bochs -qf $BASE/jOS/scripts/jOSbochsrc
 

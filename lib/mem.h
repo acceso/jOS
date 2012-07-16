@@ -1,8 +1,13 @@
-
 #ifndef MEM_H
 #define MEM_H
 
+
 #include <stdint.h>
+
+
+
+/* Memory barriers: */
+#define serialize() asm volatile("lock; subq $0,(%rsp)")
 
 
 

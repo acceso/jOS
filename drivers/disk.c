@@ -5,9 +5,9 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <lib/kernel.h>
-#include <kernel/traps.h>
-#include <kernel/intr.h>
 
+#include <kernel/intr.h>
+#include <kernel/traps.h>
 
 
 

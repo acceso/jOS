@@ -1,16 +1,15 @@
 
-// http://forum.osdev.org/viewtopic.php?f=1&t=18389
-
 
 #include <stdint.h>
 #include <stdio.h>
+
 #include <lib/bitset.h>
 #include <lib/cpu.h>
 #include <lib/kernel.h>
 #include <lib/mem.h>
 #include <sys/io.h>
-
 #include <mm/kmalloc.h>
+
 #include "intr.h"
 #include "traps.h"
 
@@ -176,28 +175,17 @@ struct _lapic lapic[1];
 
 
 
-u32
-lapic_read (u32 reg)
+
+
+__isr__
+do_lapic_err (struct intr_frame r)
 {
-	return *(volatile u32 *)(lapic[0].base + reg);
-}
+	intr_enter ();
 
+	kprintf ("Lapic internal error.\n");
 
-
-void
-lapic_write (u32 reg, u32 val)
-{
-	volatile u32 *addr = (volatile u32 *)(lapic[0].base + reg);
-
-	*addr = val;
-}
-
-
-
-void
-lapic_eoi (void)
-{
-	lapic_write (APIC_EOI, 0);
+	lapic_eoi ();
+	intr_exit ();
 }
 
 
@@ -232,7 +220,7 @@ lapic_init (void)
 	lapic[0].version = (u8)(lapic_read (APIC_VERSION) & 0xff);
 
 	/* Spurious interrupt handler */
-	idt_set_gate (SPURIOUS_INTR, (u64)&do_spurious, K_CS, GATE_INT);
+	intr_install_handler (SPURIOUS_INTR, (u64)&do_spurious);
 
 	/* Spurious interrupt. software enable | interrupt vector */
 	lapic_write (APIC_SIVR, (1<<8) | SPURIOUS_INTR);
@@ -246,6 +234,7 @@ lapic_init (void)
 	/* Set TPR to 0, unblocks all interrupts */
 	lapic_write (APIC_TPR, 0); 
 
+	intr_install_handler (APIC_E_INTR, (u64)&do_lapic_err);
 	/* Apic error local vector table reg,
 	 * readable error on APIC_ESR */
 	lapic_write (APIC_EVTE, APIC_E_INTR);

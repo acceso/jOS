@@ -9,13 +9,17 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+
 #include <lib/kernel.h>
 #include <lib/mem.h>
-#include <kernel/cpu.h>
-#include <kernel/intr.h>
 #include <sys/io.h>
 
+#include <kernel/cpu.h>
+#include <kernel/intr.h>
+
 #include "acpi.h"
+
+
 
 
 #define RSDP_SIG	0x2052545020445352 /* "RSDP PTR " */

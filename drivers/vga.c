@@ -3,10 +3,13 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdarg.h>
-#include <sys/io.h>
+
 #include <lib/kernel.h>
 #include <lib/mem.h>
+#include <sys/io.h>
+
 #include "vga.h"
+
 
 
 #define C_BLACK         0x0

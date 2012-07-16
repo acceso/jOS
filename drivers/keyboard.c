@@ -1,10 +1,19 @@
 
 #include <stdint.h>
 #include <stdio.h>
-#include <sys/io.h>
+#include <string.h>
 #include <lib/kernel.h>
+#include <sys/io.h>
+#include <drivers/vga.h>
 #include <kernel/traps.h>
 #include <kernel/intr.h>
+
+
+
+#define KBDB_LEN 256
+
+char kbdb[KBDB_LEN];
+static char *kbdbptr;
 
 
 
@@ -78,7 +87,13 @@ do_keyboard (struct intr_frame r)
 			c = kb_en[scancode];
 
 		switch (c) {
+		case '\b':
+			kbdbptr--;
+			kprintf ("%c", c);
+			break;
 		default:
+			if (kbdbptr - kbdb < KBDB_LEN)
+				*kbdbptr++ = c;
 			kprintf ("%c", c);
 		}
 
@@ -96,11 +111,24 @@ do_keyboard (struct intr_frame r)
 void
 init_keyboard (void)
 {
+	kbdbptr = kbdb;
+
 	intr_install_handler (1, (u64)&do_keyboard);
 
 
 	return;
 }
 
+
+
+void
+init_input (void)
+{
+	kprintf ("\nWelcome to jOS :)\n\n");
+
+	while (1) {
+		asm volatile ("nop\n\t");
+	}
+}
 
 
