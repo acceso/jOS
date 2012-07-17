@@ -121,14 +121,3 @@ init_keyboard (void)
 
 
 
-void
-init_input (void)
-{
-	kprintf ("\nWelcome to jOS :)\n\n");
-
-	while (1) {
-		asm volatile ("nop\n\t");
-	}
-}
-
-

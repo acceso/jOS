@@ -67,6 +67,29 @@ bittest (u64 word, u8 pos)
 
 
 
+/* Returns the position of the leftmost set bit.
+ * -1 for 0, 0 for (unsigned)-1 */
+static s8 inline
+bitscan_left (u64 word)
+{
+	if (word == 0)
+		return -1;
+
+	return MACHINEBITS - __builtin_clzl (word) - 1;
+}
+
+
+/* Same thing starting from the LSB */
+static s8 inline
+bitscan_right (u64 word)
+{
+	if (word == 0)
+		return -1;
+
+	return __builtin_ctzl (word);
+}
+
+
 
 
 #endif /* BITSET_H */

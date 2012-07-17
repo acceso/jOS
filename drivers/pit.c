@@ -30,6 +30,10 @@ pit_read_count (u8 chan)
 	outb (PIT_MCR, chan << 6);
 
 	/* Read pit count: */
+	/* NOTE: as of 05-2010 (ubuntu lucid), qemu+kvm loses interrupts
+	 * when the count is read "too many" times (~450-480 on my system). 
+	 * I'd bet there's a bug on kvm but I have no time to check it out,
+	 * I'll rmmod kvm_intel for now */
 	return inb (0x40 + chan) | inb (0x40 + chan) << 8;
 }
 
@@ -68,7 +72,7 @@ tsc_calibration_withpit (u64 *loops)
 
 	cpu_hz = ticks ();
 
-	/* Well, bogomips are meaningless, aren't they? :D 
+	/* Bogomips are meaningless, aren't they? :D 
 	 * pit_read_count introduces much more delay than the loop */
 	while (pit_read_count (2) > (u16)-1 - 11932)
 		l++; /* nop */

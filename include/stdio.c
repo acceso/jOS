@@ -156,7 +156,7 @@ kprintf (const char *fmt, ...)
 				flags |= KP_LEFTJUST;
 			else if (*p == '+')
 				flags |= KP_SIGN;
-			/* Too mucho f a hassle... */
+			/* Too much of a hassle... */
 			/*else if (*p == '0')
 				flags |= KP_ZEROPAD; */
 			else

@@ -287,7 +287,7 @@ init_acpi (void)
 
 
 	/* Is not null terminated.. */
-	strncpy (rsdpp->oemid, oem, 6);
+	strncpy (oem, rsdpp->oemid, 6);
 	oem[6] = '\0';
 
 	kprintf ("  ACPI table v%d by %s\n", rsdpp->rev, oem);

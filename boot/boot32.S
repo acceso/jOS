@@ -157,11 +157,14 @@ k_cs:
 	.quad 0x00af98000000ffff
 k_ds:
 	.quad 0x008f92000000ffff
-	/* This sucks... I should export gdt instead
-	 * anyway, if this gets moved, so has to be 
-	 * the argument to ltr */
+
+	/* This one pads to the next 4 byte aligned addr 
+	 * but it's free */
+	.quad 0x0000000000000000
+
 	.global tssd
 tssd:
+	.quad 0x0000000000000000
 	.quad 0x0000000000000000
 gdt_end:
 

@@ -6,7 +6,6 @@
 
 void init_keyboard (void);
 
-void init_input (void);
 
 
 #endif /* KEYBOARD_H */

@@ -48,6 +48,16 @@ inw (u16 port)
 } 
 
 
+static inline void
+outw (u16 port, u16 val)
+{
+	asm volatile ("outw %1, %0" : : "dN" (port), "a" (val));
+
+	iowait ();
+
+}
+
+
 
 
 

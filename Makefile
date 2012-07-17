@@ -13,7 +13,7 @@ SOURCES = \
 		drivers/rtc.o drivers/vga.o \
 	kernel/acpi.o kernel/cpu.o kernel/timers.o kernel/traps.o kernel/intr.o \
 	mm/mm.o mm/kmalloc.o mm/phys.o \
-	include/stdio.o include/stdlib.o include/string.o \
+	include/stdio.o include/stdlib.o include/string.o include/time.o \
 	lib/kernel.o lib/mem.o \
 	$()
 

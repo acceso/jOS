@@ -40,21 +40,8 @@ kmain (void)
 	init_timers ();
 	init_keyboard ();
 
-#if 0
 	init_disks ();
 
-#endif
-	{
-	int i = 6;
-	while (--i) {
-		kprintf ("%d", i);
-		msleep (1000);
-	}
-	}
-	
-	/* This should be temporal, just until we could fork init,
-	 * clone threads, tty layer... */
-	init_input ();
 
 	return 0;
 }

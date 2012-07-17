@@ -48,10 +48,31 @@ sleep_generic (u64 n, u32 d)
 }
 
 
+static inline u8
+time_before_generic (u64 base, u32 nsecs, u64 divisor)
+{
+	/* 1000000000 nsecs is sys.cpu[0].hz
+	 *      nsecs nsecs is x
+	 * x = nsecs * sys.cpu[0].hz / 1000000000 */
+	if (ticks () < base + nsecs * sys.cpu[0].hz / divisor)
+		return 1;
+
+	return 0;
+}
+
+
+
 static inline void
 nsleep (u32 nsecs)
 {
 	sleep_generic (nsecs * sys.cpu[0].hz, 1000000000);
+}
+
+
+static inline u8
+ntime_before (u64 base, u32 nsecs)
+{
+	return time_before_generic (base, nsecs, 1000000000);
 }
 
 
@@ -63,11 +84,25 @@ usleep (u32 usecs)
 }
 
 
+static inline u8
+utime_before (u64 base, u32 usecs)
+{
+	return time_before_generic (base, usecs, 1000000);
+}
+
+
 
 static inline void
 msleep (u32 msecs)
 {
 	sleep_generic (msecs * sys.cpu[0].hz, 1000);
+}
+
+
+static inline u8
+mtime_before (u64 base, u32 msecs)
+{
+	return time_before_generic (base, msecs, 1000);
 }
 
 

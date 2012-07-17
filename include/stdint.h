@@ -19,6 +19,8 @@ typedef signed long int s64;
 /* Word size */
 #define MWORD 8
 
+#define MACHINEBITS 8 * MWORD
+
 
 #define NULL ((void *)0)
 

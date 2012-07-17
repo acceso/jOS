@@ -4,6 +4,7 @@
 
 #include <drivers/lapictim.h>
 #include <drivers/pit.h>
+#include <drivers/rtc.h>
 
 #include <kernel/traps.h>
 
@@ -98,6 +99,8 @@ init_timers (void)
 	init_pit ((u64)do_pit, HZ);
 
 	init_lapic_timer ((u64)do_lapictim, HZ);
+
+	init_rtc ();
 	
 	return;
 }

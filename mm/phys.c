@@ -154,9 +154,9 @@ find_free_pages (u32 order)
 
 			bit++; 
 			current_word >>= 1;
-		} while (bit < MWORD * 8);
+		} while (bit < MACHINEBITS);
 
-		if (bit < MWORD * 8) {
+		if (bit < MACHINEBITS) {
 			bitset (&zone.memmap[i], bit);
 			return bit;
 		}

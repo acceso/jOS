@@ -34,7 +34,7 @@ strncmp (const char *s1, const char *s2, u16 l)
 
 
 void
-strcpy (char *src, char *dst)
+strcpy (char *dst, char *src)
 {
 	while (*src)
 		*dst++ = *src++;
@@ -43,7 +43,7 @@ strcpy (char *src, char *dst)
 
 
 void
-strncpy (char *src, char *dst, s16 l)
+strncpy (char *dst, char *src, s16 l)
 {
 	while (*src) {
 		if (--l < 0)
