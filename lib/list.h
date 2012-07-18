@@ -1,14 +1,12 @@
 
-#ifndef LIST_H
-#define LIST_H
+#ifndef LIB_LIST_H
+#define LIB_LIST_H
 
 
 #include <stdint.h>
 
+#include <lib/mem.h>
 
-
-#define containerof(_ptr, _type, _member) \
-	(_type *)((char *)(_ptr) - __builtin_offsetof (_type, _member))
 
 
 
@@ -27,8 +25,7 @@ list_init (struct list_head *h)
 
 
 static inline void
-list_add (struct list_head *new, struct list_head *head)
-{
+list_add (struct list_head *head, struct list_head *new) {
 	new->next = head->next;
 	new->prev = head;
 	head->next->prev = new;
@@ -38,7 +35,7 @@ list_add (struct list_head *new, struct list_head *head)
 
 
 static inline void
-list_add_back (struct list_head *new, struct list_head *head)
+list_add_back (struct list_head *head, struct list_head *new)
 {
 	new->next = head;
 	new->prev = head->prev;
@@ -58,7 +55,7 @@ list_del (struct list_head *e)
 
 
 static inline struct list_head *
-list_pop (struct list_head *h)
+list_next (struct list_head *h)
 {
 	return h->next;
 }
@@ -66,13 +63,29 @@ list_pop (struct list_head *h)
 
 
 static inline struct list_head *
-list_pop_del (struct list_head *h)
+list_prev (struct list_head *h)
 {
-	struct list_head *l = list_pop (h);
+	return h->prev;
+}
 
-	list_del (h);
+
+
+static inline struct list_head *
+list_pop (struct list_head *h)
+{
+	struct list_head *l = h->next;
+
+	list_del (h->next);
 
 	return l;
+}
+
+
+
+static inline u8
+list_empty (const struct list_head *head)
+{
+	return head->next == head;
 }
 
 
@@ -84,7 +97,11 @@ for (_var = containerof ((_head)->next, typeof (*_var), _memb);	\
 	_var = containerof ((_var)->_memb.next, typeof (*_var), _memb))
 
 
+#define list_foreach(_var, _head)				\
+for (_var = (_head)->next; (_var) != (_head); _var = _var->next)
 
-#endif /* LIST_H */
+
+
+#endif /* LIB_LIST_H */
 
 

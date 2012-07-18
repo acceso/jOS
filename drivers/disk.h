@@ -1,6 +1,9 @@
 
-#ifndef DISK_H
-#define DISK_H
+#ifndef DRIVERS_DISK_H
+#define DRIVERS_DISK_H
+
+
+#include <stdint.h>
 
 
 #define NCHANNELS 2
@@ -33,6 +36,8 @@ struct _drive {
 	char model[HD_MODEL_LEN];
 };
 
+typedef struct _drive * hddrive;
+
 
 struct _channels {
 	u16 iobase;
@@ -52,8 +57,9 @@ void init_disks (void);
 void ide_read_blocks (struct _drive *dev, void *data, u64 sector, u16 count);
 void ide_write_blocks (struct _drive *dev, void *data, u64 sector, u16 count);
 
+hddrive ide_get_root(void);
 
 
 
-#endif /* DISK_H */
+#endif /* DRIVERS_DISK_H */
 

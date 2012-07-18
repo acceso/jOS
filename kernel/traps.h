@@ -1,5 +1,5 @@
-#ifndef TRAPS_H
-#define TRAPS_H
+#ifndef KERNEL_TRAPS_H
+#define KERNEL_TRAPS_H
 
 
 #include <stdint.h>
@@ -185,5 +185,5 @@ void init_exceptions (void);
 
 
 
-#endif /* TRAPS_H */
+#endif /* KERNEL_TRAPS_H */
 

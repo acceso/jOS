@@ -8,7 +8,7 @@
 #include <lib/kernel.h>
 #include <lib/mem.h>
 #include <sys/io.h>
-#include <mm/kmalloc.h>
+#include <mm/kma.h>
 
 #include "intr.h"
 #include "traps.h"

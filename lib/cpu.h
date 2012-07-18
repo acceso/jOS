@@ -1,6 +1,6 @@
 
-#ifndef LCPU_H
-#define LCPU_H
+#ifndef LIB_CPU_H
+#define LIB_CPU_H
 
 
 #include <stdint.h>
@@ -85,6 +85,6 @@ yield (void)
 }
 
 
-#endif /* LCPU_H */
+#endif /* LIB_CPU_H */
 
 

@@ -1,6 +1,6 @@
 
 
-#define VERSION "0.0.0.14"
+#define VERSION "0.0.0.15"
 
 
 #include <stdint.h>
@@ -19,6 +19,7 @@
 #include <kernel/timers.h>
 #include <kernel/traps.h>
 
+#include <fs/fs.h>
 
 
 
@@ -26,7 +27,7 @@ u16
 kmain (void)
 {
 	cls ();
-	puts ("Booting jOS kernel " VERSION "!\n");
+	kputs ("Booting jOS kernel " VERSION "!\n");
 
 	init_cpu ();
 	init_acpi ();
@@ -41,6 +42,7 @@ kmain (void)
 	init_keyboard ();
 
 	init_disks ();
+	//init_fs ();
 
 
 	return 0;

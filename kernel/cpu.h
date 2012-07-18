@@ -1,6 +1,6 @@
 
-#ifndef KCPU_H
-#define KCPU_H
+#ifndef KERNEL_CPU_H
+#define KERNEL_CPU_H
 
 
 #include <stdint.h>
@@ -44,5 +44,5 @@ struct _gdt {
 void init_cpu ();
 
 
-#endif /* KCPU_H */
+#endif /* KERNEL_CPU_H */
 

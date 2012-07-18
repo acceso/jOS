@@ -10,11 +10,9 @@ ata0-master: type=disk, path=/home/jose/wip/jOS/referencia.img, mode=vmware4
 #, cylinders=306, heads=4, spt=17, translation=none
 #ata1: enabled=0
 
-#megs: 128
-megs: 512
-#megs: 768
+megs: 1024
 
-# para entrar en el depurador:
+# to get into the debugger:
 # xchg %bx, %bx
 magic_break: enabled=1
 

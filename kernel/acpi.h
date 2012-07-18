@@ -1,6 +1,6 @@
 
-#ifndef ACPI_H
-#define ACPI_H
+#ifndef KERNEL_ACPI_H
+#define KERNEL_ACPI_H
 
 
 #include <stdint.h>
@@ -31,5 +31,5 @@ void *acpi_search_table (u64 signature);
 void init_acpi (void);
 
 
-#endif /* ACPI_H */
+#endif /* KERNEL_ACPI_H */
 

@@ -5,107 +5,115 @@
 
 #include <lib/bitset.h>
 #include <lib/kernel.h>
-#include <lib/list.h>
 #include <lib/mem.h>
 
 #include "mm.h"
-#include "kmalloc.h"
 
 
 
-/* These have to be used taking the address, see:
-   http://sourceware.org/binutils/docs/ld/Source-Code-Reference.html */
+/* These have to be used by taking the address, see:
+ * http://sourceware.org/binutils/docs/ld/Source-Code-Reference.html 
+ * Remember: sok is physical but eok is virtual memory! */
 extern u64 sok, eok;
 
 
-extern struct _usablemem usablemem[MMAP_ARRAY_MAX];
 
+/* Max physical mem:
+ * MEM_BITMAP_MAX entries * 64 bits each * page size bytes, or:
+ * 32 * 64 * pow (2,21) */
+#define MEM_BITMAP_MAX 32
 
-#define MEM_BITMAP_MAX 32 /* Max physical mem: 32 * pow (2,21) * 64 */
-
-
-static struct _zone {
+static struct {
+	/* 1 for busy and 0 for free */
 	u64 memmap[MEM_BITMAP_MAX];
 	u64 npages;
 } zone;
 
 
 
-static u64
+/* Returns the address of the start of a given page frame number. */
+static void *
 pfn_to_addr (u64 pfn)
 {
-	return pfn * PAGE_SIZE;
+	return (void *)(pfn * PAGE_SIZE);
 }
 
 
 
+/* Returns the page frame number corresponding to a given address. */
 static inline u64
-addr_to_pfn (u64 *addr)
+addr_to_pfn (void *addr)
 {
 	return (u64)addr >> PAGE_OFFSET;
 }
 
 
 
+
+
+/* Marks as free the page that contains addr */
 static void
-pf_mark_free_addr (u64 *addr)
+pf_mark_free_addr (void *addr)
 {
 	u64 idx = addr_to_pfn (addr) >> 6;
 
 	if (idx > MEM_BITMAP_MAX)
 		return;
 
-	/* The key to understand this code is:
-	   2^6 = 64 (aka: log2(64)) and: 0x3f = bin(64-1) = 0b111111 */
-	bitclear (&zone.memmap[idx], (u64)addr_to_pfn(addr) & 0x3f);
+	/* To understand this code:
+	 * idx = page_frame_number / 64;
+	 * bit = page_frame_number % 64; */
+	bitclear (&zone.memmap[idx], (u64)addr_to_pfn (addr) & 0b111111);
 }
 
 
 
-static u64
-make_usable (struct _usablemem *r)
+static s8 
+mem_usable (void *addr)
 {
-	/* Point to the start of the next page frame: */
-	u64 *base, *p;
+	/* Within kernel code */
+	if (addr + PAGE_SIZE >= (void *)&sok &&
+		addr < (void *)__pa ((void *)&eok))
+			return 0;
+
+	/* Within lapic, io apic, bios... addresses */
+	if (addr + PAGE_SIZE >= (void *)0xfec00000 &&
+		addr < (void *)0xffffffff)
+			return 0;
+
+
+	return 1;
+}
+
+
+/* Gets the ith entry from the memory map,
+ * and marks the page frames contained within (if any) as available.
+ * Returns the number of pages made available. */
+static s64
+mm_make_range_usable (void *addr, u64 len)
+{
+	void *p;
 	u64 npages = 0;
 
-	/* Advance (if needed) to the next fully free page frame */
-	if (PAGE_ALIGNED (r->addr))
-		base = r->addr;
-	else
-		base = align_to (r->addr, PAGE_SIZE);
 
+	/* This segment is not enough for even a page. */
+	if (len < PAGE_SIZE)
+		return 0;
 
-	if ((u64)base + PAGE_SIZE > (u64)r->addr + r->len)
-		return npages;
-
-	p = base;
+	p = align_to (addr, PAGE_SIZE);
 
 	do {
 		/* No more pages */
-		if ((u64)p + PAGE_SIZE > (u64)r->addr + r->len)
+		if (p + PAGE_SIZE > addr + len)
 			return npages; 
 
-		/* Don't mess up with kernel code! */
-		if ((u64)p + PAGE_SIZE >= (u64)&sok
-			&& p < (u64 *)__pa ((u64)&eok)) {
-
-			p = (u64 *)((u64)p + PAGE_SIZE);
-			continue;
-
-		} else if ((u64)p + PAGE_SIZE >= 0xfec00000
-			&& (u64)p < 0xffffffff) {
-
-			/* This is for lapic, io apic, bios... */
-			p = (u64 *)((u64)p + PAGE_SIZE);
-			continue;
+		if (mem_usable (p)) {
+			pf_mark_free_addr (p);
+			npages++;
 		}
-
-		pf_mark_free_addr (p);
-		npages++;
-
-		p = (u64 *)((u64)p + PAGE_SIZE);
-	} while ((u64)p <= (u64)r->addr + r->len);
+	
+		p += PAGE_SIZE;
+	} while (p <= addr + len);
 
 
 	return npages;
@@ -117,19 +125,38 @@ void
 build_page_frames (void)
 {
 	u8 i;
+	void *addr = 0;
+	u64 len;
 
-	/* Initially, all memory is unusable. */
+
+	/* Initially, all memory is unusable (every bit set to 1). */
 	for (i = 0; i < MEM_BITMAP_MAX; i++)
 		zone.memmap[i] = ~0L;
+
 
 	i = 0;
 
 	do {
-		zone.npages += make_usable (&usablemem[i]);
-	} while (i < MMAP_ARRAY_MAX && usablemem[++i].len != 0);
+		len = get_mm_range (&addr, i++);
+		if (len == 0)
+			break;
+
+		zone.npages += mm_make_range_usable (addr, len);
+	} while (1);
+
 
 	kprintf ("  %d free page frames\n", zone.npages);
+
 }
+
+
+
+
+
+
+/************************************************************************/
+
+
 
 
 
@@ -170,20 +197,6 @@ find_free_pages (u32 order)
 
 
 
-#if 0
-static s8
-pfn_isfree (u64 pfn)
-{
-	u64 *p = &zone.memmap[pfn >> 6];
-	
-	if (p >= &zone.memmap[MEM_BITMAP_MAX])
-		return -1;
-
-	/* 2^6 => 64 => 0x40 (6 least significative bits) */
-	return bittest(*p, pfn & 0x40);
-}
-#endif
-
 
 
 void *
@@ -213,7 +226,7 @@ get_one_page (void)
 
 
 void
-free_pages (u64 *addr)
+free_page (u64 *addr)
 {
 	/* Not needed, pf_mark_free_addr can be called twice
 	if (pfn_isfree (addr_to_pfn (addr)))
@@ -225,7 +238,7 @@ free_pages (u64 *addr)
 
 
 void
-free_pages_pfn (u64 pfn)
+free_page_pfn (u64 pfn)
 {
 	pf_mark_free_addr ((u64 *)pfn_to_addr (pfn));
 }

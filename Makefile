@@ -2,8 +2,8 @@
 #elf = elf32
 elf = elf64
 
-PAGE_OFFSET = 0xffff800000000000
-#PAGE_OFFSET = 0x0
+K_PAGE_OFFSET = 0xffff800000000000
+#K_PAGE_OFFSET = 0x0
 
 DEBUG = -DDEBUG
 
@@ -11,10 +11,11 @@ SOURCES = \
 	boot/boot32.o kernel/main.o \
 	drivers/disk.o drivers/keyboard.o drivers/lapictim.o drivers/pit.o \
 		drivers/rtc.o drivers/vga.o \
+	fs/fs.o fs/partition.o \
 	kernel/acpi.o kernel/cpu.o kernel/timers.o kernel/traps.o kernel/intr.o \
-	mm/mm.o mm/kmalloc.o mm/phys.o \
+	mm/mm.o mm/kcache.o mm/kma.o mm/kmalloc.o mm/phys.o \
 	include/stdio.o include/stdlib.o include/string.o include/time.o \
-	lib/kernel.o lib/mem.o \
+	lib/kernel.o lib/tree.o lib/mem.o \
 	$()
 
 
@@ -23,8 +24,8 @@ CFLAGS = \
 	-fno-stack-protector -mno-red-zone -mno-abm -msoft-float \
 	-Wall -std=gnu99 -I include -I . -iquote . -pipe -m64 -mcmodel=large \
 	-ggdb -O2 $(DEBUG) \
-	-DK_PAGE_OFFSET=$(PAGE_OFFSET)
-LDFLAGS = -N -dT linker.ld --defsym page_offset=$(PAGE_OFFSET) # -M
+	-DK_PAGE_OFFSET=$(K_PAGE_OFFSET)
+LDFLAGS = -N -dT linker.ld --defsym page_offset=$(K_PAGE_OFFSET) # -M
 ASFLAGS = $(CFLAGS)
 
 
@@ -49,6 +50,7 @@ bochs: $(SOURCES)
 
 clean:
 	rm -f *.o jOS */*.o
+	cd ./test && make clean
 
 
 

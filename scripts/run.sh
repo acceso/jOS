@@ -20,7 +20,7 @@ else # qemu por defecto:
 	#EXTRA="-S" # para que espere a gdb
 	qemu-system-x86_64 -name jOS -s $EXTRA -fda ${BASE}/root.img \
 		-drive if=ide,index=0,media=disk,file=${BASE}/referencia.img \
-		-boot a -no-reboot -m 512 $*
+		-boot a -no-reboot -m 1024 $*
 fi
 
 

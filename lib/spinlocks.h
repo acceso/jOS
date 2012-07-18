@@ -1,5 +1,5 @@
-#ifndef SPINLOCKS_H
-#define SPINLOCKS_H
+#ifndef LIB_SPINLOCKS_H
+#define LIB_SPINLOCKS_H
 
 
 
@@ -60,5 +60,5 @@ spinlock_locked (spinlock_t *l)
 
 
 
-#endif /* SPINLOCKS_H */
+#endif /* LIB_SPINLOCKS_H */
 

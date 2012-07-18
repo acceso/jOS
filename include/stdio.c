@@ -66,15 +66,15 @@ itoau (u64 n, char *s, u8 base)
 		u8 f = (n & (0x0000000000ff0000)) >> 16;
 		u8 g = (n & (0x000000000000ff00)) >>  8;
 		u8 h = (n & (0x00000000000000ff)) >>  0;
-		puts ("\n");
-		puts ("->"); itoa (a, ss, 10); puts (ss); puts ("<-\n");
-		puts ("->"); itoa (b, ss, 10); puts (ss); puts ("<-\n");
-		puts ("->"); itoa (c, ss, 10); puts (ss); puts ("<-\n");
-		puts ("->"); itoa (d, ss, 10); puts (ss); puts ("<-\n");
-		puts ("->"); itoa (e, ss, 10); puts (ss); puts ("<-\n");
-		puts ("->"); itoa (f, ss, 10); puts (ss); puts ("<-\n");
-		puts ("->"); itoa (g, ss, 10); puts (ss); puts ("<-\n");
-		puts ("->"); itoa (h, ss, 10); puts (ss); puts ("<-\n");
+		kputs ("\n");
+		kputs ("->"); itoa (a, ss, 10); kputs (ss); kputs ("<-\n");
+		kputs ("->"); itoa (b, ss, 10); kputs (ss); kputs ("<-\n");
+		kputs ("->"); itoa (c, ss, 10); kputs (ss); kputs ("<-\n");
+		kputs ("->"); itoa (d, ss, 10); kputs (ss); kputs ("<-\n");
+		kputs ("->"); itoa (e, ss, 10); kputs (ss); kputs ("<-\n");
+		kputs ("->"); itoa (f, ss, 10); kputs (ss); kputs ("<-\n");
+		kputs ("->"); itoa (g, ss, 10); kputs (ss); kputs ("<-\n");
+		kputs ("->"); itoa (h, ss, 10); kputs (ss); kputs ("<-\n");
 	}
 #endif
 
@@ -295,7 +295,7 @@ kprintf (const char *fmt, ...)
 	} while (1);
 
 
-	puts (buf);
+	kputs (buf);
 
 
 	va_end (ap);
@@ -304,7 +304,7 @@ kprintf (const char *fmt, ...)
 
 
 void
-puts (const char *s)
+kputs (const char *s)
 {
 	while (*s)
 		vga_writechar (*s++);

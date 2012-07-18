@@ -1,5 +1,5 @@
-#ifndef MEM_H
-#define MEM_H
+#ifndef LIB_MEM_H
+#define LIB_MEM_H
 
 
 #include <stdint.h>
@@ -16,10 +16,15 @@
 
 
 
+
+#define containerof(_ptr, _type, _member) \
+	(_type *)((char *)(_ptr) - __builtin_offsetof (_type, _member))
+
+
 void *align_to (void *a, u32 p);
 
 
 
-#endif /* MEM_H */
+#endif /* LIB_MEM_H */
 
 

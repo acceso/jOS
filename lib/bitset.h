@@ -1,6 +1,6 @@
 
-#ifndef BITSET_H
-#define BITSET_H
+#ifndef LIB_BITSET_H
+#define LIB_BITSET_H
 
 
 #include <stdint.h>
@@ -20,6 +20,16 @@ bitset (u64 *word, u64 pos)
 
 
 
+/* Set the nth bit starting from "ptr". */
+static void inline
+bitsetptr (void *ptr, u16 pos)
+{
+	/* Math is math :) This is like (a/b, a%b) or (byte, bit) */
+	bitset (ptr + ((pos >> 3) & ~0b111), pos & 0b111111);
+}
+
+
+
 static void inline
 bitclear (u64 *word, u64 pos)
 {
@@ -28,6 +38,14 @@ bitclear (u64 *word, u64 pos)
 		: [reg] "+m"(*word)
 		: [bit] "ir" (pos)
 		: "cc" );
+}
+
+
+
+static void inline
+bitclearptr (void *ptr, u16 pos)
+{
+	bitclear (ptr + ((pos >> 3) & ~0b111), pos & 0b111111);
 }
 
 
@@ -92,6 +110,6 @@ bitscan_right (u64 word)
 
 
 
-#endif /* BITSET_H */
+#endif /* LIB_BITSET_H */
 
 

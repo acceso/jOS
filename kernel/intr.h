@@ -1,6 +1,6 @@
 
-#ifndef INTR_H
-#define INTR_H
+#ifndef KERNEL_INTR_H
+#define KERNEL_INTR_H
 
 
 #include <stdint.h>
@@ -126,5 +126,5 @@ void ioapic_redir_unmask (u8 n);
 void init_interrupts (void);
 
 
-#endif /* INTR_H */
+#endif /* KERNEL_INTR_H */
 

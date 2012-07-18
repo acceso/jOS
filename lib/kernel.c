@@ -11,10 +11,10 @@ kpanic (char *str)
 	if (str == NULL)
 		str = "";
 
-	puts ("\n\n");
-	puts (str);
+	kputs ("\n\n");
+	kputs (str);
 
-	puts ("\n\n\nOoooops!!! Habemus pete!\n\n"
+	kputs ("\n\n\nOoooops!!! Habemus pete!\n\n"
 		 "<Halted>\n");
 
 	asm(

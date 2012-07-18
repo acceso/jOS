@@ -1,5 +1,5 @@
-#ifndef PHYS
-#define PHYS
+#ifndef MM_PHYS_H
+#define MM_PHYS_H
 
 
 
@@ -14,10 +14,10 @@ void build_page_frames (void);
 void *get_pages (u32 order);
 void *get_one_page (void);
 
-void free_pages (u64 *addr);
-void free_pages_pfn (u64 pfn);
+void free_page (u64 *addr);
+void free_page_pfn (u64 pfn);
 
 
-#endif /* PHYS */
+#endif /* MM_PHYS_H */
 
 

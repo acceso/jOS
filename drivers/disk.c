@@ -495,3 +495,11 @@ ide_write_blocks (struct _drive *dev, void *data, u64 sector, u16 count)
 
 
 
+hddrive
+ide_get_root(void)
+{
+	return &channels[0].drive[IDE_MASTER];
+}
+
+
+

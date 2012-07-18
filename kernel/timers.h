@@ -1,5 +1,5 @@
-#ifndef TIMERS_H
-#define TIMERS_H
+#ifndef KERNEL_TIMERS_H
+#define KERNEL_TIMERS_H
 
 
 #include <stdint.h>
@@ -112,5 +112,5 @@ void init_timers (void);
 
 
 
-#endif /* TIMERS_H */
+#endif /* KERNEL_TIMERS_H */
 

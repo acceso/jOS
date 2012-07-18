@@ -9,11 +9,12 @@
 
 #include "mm.h"
 #include "phys.h"
-#include "kmalloc.h"
+#include "kma.h"
 
 
 
-typedef struct multiboot_info {
+/* Grub uses this format for the memory ranges it gets from BIOS */
+typedef struct {
 	u32 flags;
 	u32 mem_lower;
 	u32 mem_upper;
@@ -29,140 +30,80 @@ typedef struct multiboot_info {
 	u32 config_table;
 	u32 boot_loader_name;
 	u32 apm_table;
-} __attribute__((packed)) multiboot_info_t;
+} __attribute__((packed)) mboot_info;
 
 
-
-struct multiboot_mmap_entry {
+/* mboot_info->mmap_addr contains a pointer to an array 
+ * with this format and mboot_info->mmap_length bytes: */
+typedef struct {
 	u32 size;
 	u64 addr;
 	u64 len;
 	u32 type;
-} __attribute__((packed));
-
-typedef struct multiboot_mmap_entry multiboot_memory_map_t;
+} __attribute__((packed)) mboot_mmap_info;
 
 
 
+/* Set on assembly code,
+ * points to the mboot_info structure used by grub in 32 bit cpu mode */
 extern u32 mbi32;
-static multiboot_info_t *mbi;
+
+/* Our pointer will be 64 bits so we need to extend it. */
+static mboot_info *mbi;
 
 
-struct _usablemem usablemem[MMAP_ARRAY_MAX];
 
 
-
-static void
-get_memory_ranges_grub (void)
+/* Get the n range. if (mbi->flags & (0b1 << 1)) not set,
+ * we should fallback to e820 bios method.
+ * 
+ * Note we use this "stateless" function because although it's expensive
+ * to loop over the memory map foreach entry, we avoid to reserve memory.
+ */
+u64 
+get_mm_range (void **addr, u16 n)
 {
-	multiboot_memory_map_t *mmap;
+	mboot_mmap_info *mmap;
 	u8 i = 0;
 
 
-	mmap = (multiboot_memory_map_t *)(u64)mbi->mmap_addr;
-
-
-	if ((mbi->flags & (1<<0)) == 0x0)
-		kpanic ("Can't detect memory!\n");
-
-	kprintf ("%i lower and %i upper KB detected. Usable ranges:\n",
-		mbi->mem_lower, mbi->mem_upper);
-
-	/*if ((mbi->flags & (1<<5)) == 0x0)
-		kpanic ("Invalid memory map!\n");*/
-
-
-	/*kprintf ("mmap_addr = %p, mmap_length = %p\n",
-		(unsigned) mbi->mmap_addr,
-		(unsigned) mbi->mmap_length);*/
+	mmap = (mboot_mmap_info *)(u64)mbi->mmap_addr;
 
 
 	while ((u64)mmap < mbi->mmap_addr + mbi->mmap_length) {
-		if (mmap->type == 1) {
-
-			kprintf ("  base: %10p    limit: %10p    "
-				 "(%10p B)\t\n", 
-				 mmap->addr, mmap->addr + mmap->len,
-				 mmap->len);
-
-			usablemem[i].addr = (u64 *)mmap->addr;
-			usablemem[i++].len = mmap->len;
-
+		if (mmap->type == 1 && i++ == n) {
+			*addr = (void *)mmap->addr;
+			return mmap->len;
 		}
-		mmap = (multiboot_memory_map_t *)((u64)mmap + mmap->size
+
+		mmap = (mboot_mmap_info *)((u64)mmap + mmap->size
 			+ sizeof (mmap->size));
 	}
 
-
-	return;
+	return 0;
 }
-
-
-#if 0
-static void
-get_memory_ranges_e820 (void)
-{
-
-#define SMAP 0x534D4150
-
-	register u32 ebx asm ("%%ebx") = 0;
-	/* Up to this point, no low memory has to be in use
-	 * (should be obvious because we're detecting it).
-	 * No other function should use these values. */
-	register u16  di asm ("%%di") = (u16)(u64) /* We skip 0 */
-		align_to ((multiboot_memory_map_t *)1, MWORD); 
-
-	register u32 eax asm ("%%eax");
-	register u32 edx asm ("%%edx");
-	register u32 ecx asm ("%%ecx");
-
-
-	do {
-		eax = 0xe820;
-		edx = SMAP; /* "SMAP" Signature */
-		ecx = sizeof (multiboot_memory_map_t) - 4;
-
-		/*call_bios ("int $0x15\n");*/
-
-		if (edx != SMAP) {
-			kprintf ("e820 failed! Can do no more :(\n");
-			break;
-		}
-
-		kprintf ("%d\n", mmap.addr);
-		kprintf ("%d\n", mmap.len);
-		kprintf ("%d\n", mmap.type);
-
-	} while (ebx != 0);
-
-
-
-	return;
-
-
-}
-#endif
 
 
 
 void
 init_memory (void)
 {
-	mbi = (multiboot_info_t *)((u64)mbi32);
+	mbi = (mboot_info *)((u64)mbi32);
 
+	kprintf ("%i lower and %i upper KB detected.\n",
+		mbi->mem_lower, mbi->mem_upper);
 
-	/* Use grub's provided memory if available,
-	 * otherwise, fallback to e820 bios method. */
-	/* Note: the a.out kludge messes up with this (I guess)
-	if ((mbi->flags & (1<<5)) != 0x0)
-		get_memory_ranges_grub ();
-	else
-		get_memory_ranges_e820 ();
-	*/
-	get_memory_ranges_grub ();
+	if ((mbi->flags & (1<<0)) == 0x0)
+		kpanic ("Can't detect memory!\n");
+
+	/* FIXME: as I understand the spec,
+	 * the sixth bit should be 1 but it's 0... */
+	/* if ((mbi->flags & (1<<5)) == 0x0)
+		kpanic ("Invalid memory map!\n"); */
+
 
 	build_page_frames ();
-	heap_init ();
+	kma_init ();
 
 }
 

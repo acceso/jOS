@@ -1,6 +1,6 @@
 
-#ifndef DEBUG_H
-#define DEBUG_H
+#ifndef LIB_DEBUG_H
+#define LIB_DEBUG_H
 
 
 #ifdef DEBUG
@@ -16,6 +16,6 @@
 
 
 
-#endif /* DEBUG_H */
+#endif /* LIB_DEBUG_H */
 
 

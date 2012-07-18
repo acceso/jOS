@@ -8,7 +8,8 @@
 
 
 void kprintf (const char *fmt, ...);
-void puts (const char *s);
+void kputs (const char *s);
+
 
 
 

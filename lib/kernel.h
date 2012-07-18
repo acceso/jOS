@@ -1,6 +1,6 @@
 
-#ifndef KERNEL_H
-#define KERNEL_H
+#ifndef LIB_KERNEL_H
+#define LIB_KERNEL_H
 
 
 #define K_CS 0x8
@@ -21,5 +21,5 @@ void kpanic (char *str);
 
 #endif /* _ASM */
 
-#endif /* KERNEL_H */
+#endif /* LIB_KERNEL_H */
 

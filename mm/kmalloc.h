@@ -1,23 +1,16 @@
-#ifndef KMALLOC
-#define KMALLOC
 
-
-#include <stdint.h>
-
-
-
-#define MEM_UNCACHED	0x1
+#ifndef MM_KMALLOC_H
+#define MM_KMALLOC_H
 
 
 
 
-void *kmalloc (u64 size, u16 flags);
-void kfree (void *addr);
+void *kmalloc (size_t size);
+void kfree (void *ptr);
 
-void heap_init (void);
+void init_kmalloc (void);
 
 
-
-#endif /* KMALLOC */
+#endif /* MM_KMALLOC_H */
 
 
