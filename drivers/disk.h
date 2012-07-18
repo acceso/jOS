@@ -12,6 +12,15 @@
 struct _channels;
 
 
+struct _partition {
+	u64 base;
+	size_t len;
+	u8 flags;
+	u8 type;
+};
+
+
+
 struct _drive {
 	u64 nsectors;
 
@@ -34,9 +43,10 @@ struct _drive {
 	char fwrev[HD_FWREV_LEN];
 #define HD_MODEL_LEN	(40 + 1)
 	char model[HD_MODEL_LEN];
+
+	struct _partition part[16];
 };
 
-typedef struct _drive * hddrive;
 
 
 struct _channels {
@@ -53,12 +63,6 @@ struct _channels {
 
 
 void init_disks (void);
-
-void ide_read_blocks (struct _drive *dev, void *data, u64 sector, u16 count);
-void ide_write_blocks (struct _drive *dev, void *data, u64 sector, u16 count);
-
-hddrive ide_get_root(void);
-
 
 
 #endif /* DRIVERS_DISK_H */

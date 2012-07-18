@@ -93,7 +93,7 @@ tsc_calibration_withpit (u64 *loops)
 
 
 void
-init_pit (u64 intr_handler, u32 hz)
+init_pit (void *intr_handler, u32 hz)
 {
 	pit_set_timer (0, 0b11, 0b010, hz);
 

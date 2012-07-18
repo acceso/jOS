@@ -220,7 +220,7 @@ lapic_init (void)
 	lapic[0].version = (u8)(lapic_read (APIC_VERSION) & 0xff);
 
 	/* Spurious interrupt handler */
-	intr_install_handler (SPURIOUS_INTR, (u64)&do_spurious);
+	intr_install_handler (SPURIOUS_INTR, do_spurious);
 
 	/* Spurious interrupt. software enable | interrupt vector */
 	lapic_write (APIC_SIVR, (1<<8) | SPURIOUS_INTR);
@@ -234,7 +234,7 @@ lapic_init (void)
 	/* Set TPR to 0, unblocks all interrupts */
 	lapic_write (APIC_TPR, 0); 
 
-	intr_install_handler (APIC_E_INTR, (u64)&do_lapic_err);
+	intr_install_handler (APIC_E_INTR, do_lapic_err);
 	/* Apic error local vector table reg,
 	 * readable error on APIC_ESR */
 	lapic_write (APIC_EVTE, APIC_E_INTR);

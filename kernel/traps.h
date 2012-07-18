@@ -179,7 +179,7 @@ stack_frame_err_dump (struct intr_frame_err *r)
 
 
 
-void intr_install_handler (u8 num, u64 addr);
+void intr_install_handler (u8 num, void *addr);
 void init_exceptions (void);
 
 

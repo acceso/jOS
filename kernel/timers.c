@@ -96,9 +96,9 @@ init_timers (void)
 
 	tsc_calibration ();
 
-	init_pit ((u64)do_pit, HZ);
+	init_pit (do_pit, HZ);
 
-	init_lapic_timer ((u64)do_lapictim, HZ);
+	init_lapic_timer (do_lapictim, HZ);
 
 	init_rtc ();
 	

@@ -17,6 +17,7 @@
 
 u64 get_mm_range (void **addr, u16 n);
 
+void oom (const char *str);
 void init_memory (void);
 
 

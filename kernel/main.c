@@ -1,6 +1,6 @@
 
 
-#define VERSION "0.0.0.15"
+#define VERSION "0.0.0.17"
 
 
 #include <stdint.h>
@@ -9,6 +9,8 @@
 #include <lib/debug.h>
 #include <mm/mm.h>
 
+#include <drivers/block.h>
+#include <drivers/device.h>
 #include <drivers/disk.h>
 #include <drivers/keyboard.h>
 #include <drivers/vga.h>
@@ -21,6 +23,8 @@
 
 #include <fs/fs.h>
 
+
+static dev_t root = { .major = BMAJOR_HD, .minor = 1 };
 
 
 u16
@@ -42,7 +46,7 @@ kmain (void)
 	init_keyboard ();
 
 	init_disks ();
-	//init_fs ();
+	init_fs (&root);
 
 
 	return 0;

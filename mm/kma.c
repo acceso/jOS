@@ -181,7 +181,7 @@ kma_pool_expand_one (void)
 
 	p = get_one_page ();
 	if (p == NULL)
-		kpanic ("Out of memory!\n");
+		oom (__func__);
 
 
 	nb = (struct free_block *)p;

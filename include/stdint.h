@@ -26,6 +26,13 @@ typedef signed long int s64;
 
 
 typedef u64 size_t;
+typedef u32 uid_t;
+typedef u32 gid_t;
+typedef u64 time_t;
+
+
+#define WARN_UNUSED	__attribute__((warn_unused_result))
+
 
 
 #endif /* STDINT_H */

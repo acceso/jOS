@@ -15,11 +15,11 @@
 
 
 static void 
-set_idt_reg (u64 base, u16 limit)
+set_idt_reg (void *base, u16 limit)
 {
 	struct {
 		u16 limit;
-		u64 base;
+		void *base;
 	} __attribute__((__packed__)) idt_reg;
 
 	idt_reg.base = base;
@@ -299,7 +299,7 @@ static struct {
 
 
 static void
-idt_set_gate (u8 num, u64 addr, u16 selector, u16 flags)
+idt_set_gate (u8 num, void *addr, u16 selector, u16 flags)
 {
 	/* No, i'm not smoking crack :)
 	 * gcc doesn't support "naked" functions, see:
@@ -310,9 +310,9 @@ idt_set_gate (u8 num, u64 addr, u16 selector, u16 flags)
 	 * It sucks but it's better than any other solution */
 	addr += 16;
 
-	idtentry[num].offset1 = addr & 0xFFFF;
-	idtentry[num].offset2 = (addr >> 16) & 0xFFFF;
-	idtentry[num].offset3 = (addr >> 32);
+	idtentry[num].offset1 = (u64)addr & 0xFFFF;
+	idtentry[num].offset2 = ((u64)addr >> 16) & 0xFFFF;
+	idtentry[num].offset3 = ((u64)addr >> 32);
 	idtentry[num].selector = selector;
 	idtentry[num].flags = flags;
 
@@ -326,7 +326,7 @@ extern struct _ioapic ioapic;
 
 /* Note: this is only for interrupts */
 void
-intr_install_handler (u8 num, u64 addr)
+intr_install_handler (u8 num, void *addr)
 {
 	/* This stuff or redirections is a mess :( */
 
@@ -357,41 +357,41 @@ init_exceptions (void)
 {
 	u8 n;
 
-	idt_set_gate (0, (u64)&exc_0_divideby0, K_CS, GATE_INT);
-	idt_set_gate (1, (u64)&exc_1_debug, K_CS, GATE_INT);
-	idt_set_gate (2, (u64)&exc_2_nmi, K_CS, GATE_INT);
-	idt_set_gate (3, (u64)&exc_3_breakpoint, K_CS, GATE_INT);
-	idt_set_gate (4, (u64)&exc_4_overflow, K_CS, GATE_INT);
-	idt_set_gate (5, (u64)&exc_5_bound, K_CS, GATE_INT);
-	idt_set_gate (6, (u64)&exc_6_iopcode, K_CS, GATE_INT);
-	idt_set_gate (7, (u64)&exc_7_nomathco, K_CS, GATE_INT);
-	idt_set_gate (8, (u64)&exc_8_doublefault, K_CS, GATE_INT);
-	idt_set_gate (9, (u64)&exc_generic_handler, K_CS, GATE_INT);
-	idt_set_gate (10, (u64)&exc_10_tss_inval, K_CS, GATE_INT);
-	idt_set_gate (12, (u64)&exc_11_nosuchsegment, K_CS, GATE_INT);
-	idt_set_gate (13, (u64)&exc_12_stack, K_CS, GATE_INT);
-	idt_set_gate (14, (u64)&exc_13_gp, K_CS, GATE_INT);
-	idt_set_gate (15, (u64)&exc_14_pf, K_CS, GATE_INT);
-	idt_set_gate (16, (u64)&exc_generic_handler, K_CS, GATE_INT);
-	idt_set_gate (17, (u64)&exc_16_math_pending, K_CS, GATE_INT);
-	idt_set_gate (18, (u64)&exc_17_misalignment, K_CS, GATE_INT);
-	idt_set_gate (19, (u64)&exc_18_machinecheck, K_CS, GATE_INT);
-	idt_set_gate (10, (u64)&exc_19_simd, K_CS, GATE_INT);
+	idt_set_gate (0, exc_0_divideby0, K_CS, GATE_INT);
+	idt_set_gate (1, exc_1_debug, K_CS, GATE_INT);
+	idt_set_gate (2, exc_2_nmi, K_CS, GATE_INT);
+	idt_set_gate (3, exc_3_breakpoint, K_CS, GATE_INT);
+	idt_set_gate (4, exc_4_overflow, K_CS, GATE_INT);
+	idt_set_gate (5, exc_5_bound, K_CS, GATE_INT);
+	idt_set_gate (6, exc_6_iopcode, K_CS, GATE_INT);
+	idt_set_gate (7, exc_7_nomathco, K_CS, GATE_INT);
+	idt_set_gate (8, exc_8_doublefault, K_CS, GATE_INT);
+	idt_set_gate (9, exc_generic_handler, K_CS, GATE_INT);
+	idt_set_gate (10, exc_10_tss_inval, K_CS, GATE_INT);
+	idt_set_gate (12, exc_11_nosuchsegment, K_CS, GATE_INT);
+	idt_set_gate (13, exc_12_stack, K_CS, GATE_INT);
+	idt_set_gate (14, exc_13_gp, K_CS, GATE_INT);
+	idt_set_gate (15, exc_14_pf, K_CS, GATE_INT);
+	idt_set_gate (16, exc_generic_handler, K_CS, GATE_INT);
+	idt_set_gate (17, exc_16_math_pending, K_CS, GATE_INT);
+	idt_set_gate (18, exc_17_misalignment, K_CS, GATE_INT);
+	idt_set_gate (19, exc_18_machinecheck, K_CS, GATE_INT);
+	idt_set_gate (10, exc_19_simd, K_CS, GATE_INT);
 
 	for (n = 20; n <= 29; n++)
-		idt_set_gate (n, (u64)&exc_generic_handler, K_CS, GATE_INT);
+		idt_set_gate (n, exc_generic_handler, K_CS, GATE_INT);
 
-	idt_set_gate (30, (u64)&exc_30_security, K_CS, GATE_INT);
-	idt_set_gate (31, (u64)&exc_generic_handler, K_CS, GATE_INT);
+	idt_set_gate (30, exc_30_security, K_CS, GATE_INT);
+	idt_set_gate (31, exc_generic_handler, K_CS, GATE_INT);
 
 
 
 	for (n = 32; n <= 254; n++)
-		idt_set_gate (n, (u64)&isr_generic_handler, K_CS, GATE_INT);
+		idt_set_gate (n, isr_generic_handler, K_CS, GATE_INT);
 
 
 
-	set_idt_reg ((u64) idtentry, sizeof(idtentry) - 1);
+	set_idt_reg (idtentry, sizeof (idtentry) - 1);
 
 }
 

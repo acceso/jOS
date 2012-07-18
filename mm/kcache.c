@@ -148,7 +148,7 @@ kcache_create (const char *name, size_t objsz)
 
 	cache = (struct kcache *)kma_alloc (sz);
 	if (cache == NULL)
-		kpanic ("Out of memory!\n");
+		oom (__func__);
 
 	list_init (&cache->slabs_full);
 	list_init (&cache->slabs_notfull);
@@ -213,7 +213,7 @@ kcache_add_slab (struct kcache *cache)
 
 	slab = (struct slab *)kma_alloc (cache->last_slab);
 	if (slab == NULL)
-		kpanic ("Out of memory!\n");
+		oom (__func__);
 
 	cache->kma_alloc++;
 

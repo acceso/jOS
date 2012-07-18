@@ -113,7 +113,7 @@ init_keyboard (void)
 {
 	kbdbptr = kbdb;
 
-	intr_install_handler (1, (u64)&do_keyboard);
+	intr_install_handler (1, do_keyboard);
 
 
 	return;

@@ -8,7 +8,7 @@
 
 
 
-void init_lapic_timer (u64 intr_handler, u32 hz);
+void init_lapic_timer (void *intr_handler, u32 hz);
 
 
 

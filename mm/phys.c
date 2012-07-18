@@ -210,7 +210,7 @@ get_pages (u32 order)
 
 	pfn = find_free_pages (order);
 	if (pfn < 0)
-		kpanic ("Out of memory!\n");
+		oom (__func__);
 
 	return (void *)__va (pfn_to_addr (pfn));
 }

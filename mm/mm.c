@@ -86,6 +86,15 @@ get_mm_range (void **addr, u16 n)
 
 
 void
+oom (const char *str)
+{
+	kprintf ("Out of memory: %s\n", str);
+	kpanic (":(");
+}
+
+
+
+void
 init_memory (void)
 {
 	mbi = (mboot_info *)((u64)mbi32);

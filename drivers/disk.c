@@ -1,16 +1,4 @@
 
-/*
- * - make a good wait function
- * - resolve the spurious interrupt problem when initializing
- */
-
-
-
-/* IDE driver operating in "compatibility" mode (ATA-1) 
- * Note: I'll skip stuff I know is ok in an emulator
- */
-
-
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -20,10 +8,13 @@
 #include <lib/kernel.h>
 #include <sys/io.h>
 
+#include <drivers/block.h>
+
 #include <kernel/intr.h>
 #include <kernel/timers.h>
 #include <kernel/traps.h>
 
+#include "device.h"
 #include "disk.h"
 
 
@@ -46,8 +37,6 @@
 #define ide_status_alt		0x206 /* ro */
 #define ide_ctrl		0x206 /* wo */
 
-#define selected_drive(dev)	(dev)->channel->selected_drive
-
 
 #define IDECMD_READ_SECTORS		0x20
 #define IDECMD_READ_SECTORS_EXT		0x24
@@ -55,6 +44,11 @@
 #define IDECMD_WRITE_SECTORS_EXT	0x34
 #define IDECMD_IDENTIFY			0xec
 #define IDECMD_FLUSH_CACHE		0xe7
+
+
+
+static size_t ide_read_blocks (struct _drive *dev, size_t sector, void *data, size_t count);
+static size_t ide_write_blocks (struct _drive *dev, size_t sector, void *data, size_t count);
 
 
 static struct _channels channels[NCHANNELS];
@@ -65,26 +59,34 @@ static u8
 ide_ready_wait (struct _drive *dev)
 {
 	u8 s;
-	u8 times = 50;
+	u16 times = 0;
 
-/* TODO: This will do the same thing for now :) */
+/* TODO: temporal :) */
 usleep (500);
-return 1;
+return inb (dev->channel->iobase + ide_status);
 
-	while (times--) {
-		s = inb (dev->channel->iobase + ide_status_alt);
-		if (bittest (s, 7) == 0)
-			break;
-		else
-			yield ();
+	while (++times < 100) {
+		s = inb (dev->channel->iobase + ide_status);
+
+		// kprintf ("---->%d<---\n", s);
+
+		if (bittest (s, 7)) /* Busy */
+			usleep (500);
+		else if (bittest (s, 0)) { /* Error */
+			if (times < 5)
+				continue;
+
+			/* TODO: reset drive... */
+			kprintf ("Ata %d error: %d\n", dev->devnum,
+					inb (dev->channel->iobase + ide_ereg));
+			kpanic ("Can't recover ata errors.");
+		} else if (bittest (s, 3)) /* DRQ */
+			usleep (500);
 	}
 
-	/* Still busy or (ERR)or or (D)rive (F)ault*/
-	if (times == 0 || bittest (s, 0) || bittest (s, 5)) {
-		kprintf ("ATA Disk failure.\n");
-		/* This is an illegal status value */
-		return 0xff;
-	}
+	if (times == 0)
+		/* TODO: reset and repeat? */
+		kprintf ("Bogus ide command.\n");
 
 	return s;
 }
@@ -94,20 +96,7 @@ return 1;
 static u8
 ide_cmd_read (struct _drive *dev, u16 reg)
 {
-	u8 s;
-	u8 times = 50;
-
-	while (times--) {
-		s = ide_ready_wait (dev);
-		if (bittest (s, 3) == 0)
-			break;
-	}
-
-	if (s == 0xff)
-		/* Note 0xff can be read from a reigster... 
-		 * will have to be careful here */
-		return 0xff;
-
+	ide_ready_wait (dev);
 
 	return inb (dev->channel->iobase + reg);
 }
@@ -125,6 +114,16 @@ ide_cmd_read16 (struct _drive *dev, u16 reg)
 
 
 static void
+ide_cmd_write (struct _drive *dev, u16 reg, u8 data)
+{
+	ide_ready_wait (dev);
+
+	outb (dev->channel->iobase + reg, data);
+}
+
+
+
+static void
 ide_cmd_write16 (struct _drive *dev, u16 reg, u16 data)
 {
 	ide_ready_wait (dev);
@@ -134,78 +133,75 @@ ide_cmd_write16 (struct _drive *dev, u16 reg, u16 data)
 
 
 
-static void
-ide_cmd_write (struct _drive *dev, u16 reg, u8 data)
-{
-	if (ide_ready_wait (dev) == 0)
-		return;
-
-	outb (dev->channel->iobase + reg, data);
-}
-
-
-
 static u8
 ide_dev_sel (struct _drive *dev)
 {
 	/* We've got the right one already selected */
-	if (selected_drive (dev) == dev->devnum)
+	if (dev->channel->selected_drive == dev->devnum)
 		return 0;
 
 	/* see ata-2, 6.2.7:
-	   set 1<<6 for LBA addressing,
-	   set 1<<4 for device 1 (slave) or unset fordevice 0 (master) */
-	ide_cmd_write (dev, ide_devsel, (1<<6) | (dev->devnum<<4) );
+	   0xa0 is 0b10100000, obsolete bits, bochs complaints...
+	   1<<6 for LBA addressing,
+	   1<<4 for device 1 (slave) or unset fordevice 0 (master) */
+	ide_cmd_write (dev, ide_devsel, 0xa0 | (1 << 6) | (dev->devnum << 4));
 	dev->channel->selected_drive = dev->devnum;
 	
 	return 1;
 }
 
 
-#ifdef _notyet
+#if 0
 static void
 ide_reset (struct _drive *dev)
 {
-	/* Note: after a reset, the master drive is selected: */
+	/* Not yet done... */
+	return;
+
 	ide_cmd_write (dev, ide_ctrl, 0x4);
 	usleep (10);
 	ide_cmd_write (dev, ide_ctrl, 0x0);
 
 	dev->channel->selected_drive = IDE_MASTER;
 
-	msleep (100);
+	msleep (150);
 }
 #endif
 
 
+static void 
+do_ide_dev (struct _drive *dev)
+{
+	/* Things to check:  
+	 * - pci busmaster status byte to check the irq came from the disk
+	 */
+	ide_ready_wait (dev);
+	/* - if it was a read op, read busmaster status reg
+	 *   if bit 1 is set, save values and write a 2 to it
+	 */
+}
+
+
 
 __isr__
-do_ide (struct intr_frame r)
+do_ide1 (struct intr_frame r)
 {
 	intr_enter ();
 
-	/* u8 s, e; */
+	do_ide_dev (&channels[0].drive[channels[0].selected_drive]);
 
-	/* They will hapen even though using PIO, there is no point... */
-	/* kprintf ("disk intr!\n"); */
+	lapic_eoi ();
+	intr_exit ();
+}
 
 
-	/* Things to check:  
-	 * - pci busmaster status byte to check the irq came from the disk
-	 * - read status reg to clear the interrupt flag
-	 * - if err == 1, read error io port (ide_ereg)
-	 * - if it was a read op, read busmaster status reg
-	 *   if bit 1 is set, save values and write a 2 to it
-	 */
 
-	/* Don't have a "dev" struct pointer yet... TODO:
-	s = ide_cmd_read (dev, ide_status);
-	if (bittest (s, 7)) {
-		e = ide_cmd_read (dev, ide_ereg);
-		...
-	}
-	*/
+__isr__
+do_ide2 (struct intr_frame r)
+{
+	intr_enter ();
 
+	do_ide_dev (&channels[1].drive[channels[1].selected_drive]);
 
 	lapic_eoi ();
 	intr_exit ();
@@ -257,18 +253,22 @@ ide_identify (struct _drive *dev)
 	char *p;
 
 
+	ide_dev_sel (dev);
+
 	/* Send identify command */
 	ide_cmd_write (dev, ide_cmdreg, IDECMD_IDENTIFY);
 
+	u8 s = inb (dev->channel->iobase + ide_status_alt);
+	if (s == 0 || bittest (s, 5) || bittest (s, 0))
+		return 0;
 
-	for (c = 0; c < 256 ; c++)
+	for (c = 0; c <= 255 ; c++)
 		b[c] = ide_cmd_read16 (dev, ide_datareg);
 
 	/* General configuration word,
 	 * Bit 15 == 0 if the device conforms to the spec */
 	if (b[0] & 0x800)
 		return 0;
-
 
 	/* Capabilities. 
 	 * Bit 9 == 1 if the device supports LBA 
@@ -297,15 +297,13 @@ ide_identify (struct _drive *dev)
 		 * several different versions at the same time */
 		dev->ata_version_max = bitscan_left ((u64)b[80]);
 
-	/* The second way makes gcc happy: */
-	/* dev->nsectors = *(u32 *)(b + 100); */
-	/* dev->nsectors = (*(b + 61) << 16) | *(b + 60); 
-	 * but we'll be using lba48: */
 	dev->nsectors = 
 		((u64)*(b + 103) << 48) 
 		| ((u64)*(b + 102) << 32) 
 		| (*(b + 101) << 16) 
 		| *(b + 100);
+	if (dev->nsectors == 0)
+		dev->nsectors = (*(b + 61) << 16) | *(b + 60); 
 
 
 	/* TODO: this should be calculated... */
@@ -317,47 +315,92 @@ ide_identify (struct _drive *dev)
 
 
 
+
+/***************************************************/
+
+
+typedef struct __attribute__((packed)) {
+	u8 flags;
+	u8 head_start; u8 sec_start; u8 cyl_start;
+	u8 ptype;
+	u8 head_end; u8 sec_end; u8 cyl_end;
+	u32 lba_start;
+	u32 lba_len;
+} p_entry;
+
+
+
+static void
+read_pentry (struct _drive *dev, u8 pnum, u8 *first_sector)
+{
+	p_entry *p;
+
+	p = (p_entry *)&first_sector[0x1be + (pnum - 1) * sizeof (p_entry)];
+
+	dev->part[pnum].flags = p->flags;
+	dev->part[pnum].type = p->ptype;
+	dev->part[pnum].base = p->lba_start;
+	dev->part[pnum].len = p->lba_len;
+
+	if (dev->part[pnum].len == 0)
+		return;
+
+	kprintf("    Found partition %d: %d KB\n", pnum,
+		dev->part[pnum].len * dev->blocksize >> 10 );
+}
+
+
+
+static void
+read_partitions (struct _drive *dev)
+{
+	u8 first_sector[512];
+
+	ide_read_blocks (dev, 0, first_sector, 512);
+
+	/* This is the boot record signature, just a magic number */
+	if (first_sector[510] != 0x55 || first_sector[511] != 0xaa)
+		return;
+
+	/* Partition 0 is the full disk */
+	dev->part[0].len = dev->nsectors * dev->blocksize;
+
+	read_pentry (dev, 1, first_sector);
+	read_pentry (dev, 2, first_sector);
+	read_pentry (dev, 3, first_sector);
+	read_pentry (dev, 4, first_sector);
+}
+
+
+
 static void
 ide_init_dev (struct _channels *channel, u8 devnum)
 {
-	u8 s;
 	struct _drive *dev;
 	
 	dev = &channel->drive[devnum];
 
 	dev->devnum = devnum;
 
-
-	ide_dev_sel (dev);
-
-	/* If the status is illegal, there's no drive */
-	s = ide_cmd_read (dev, ide_status);
-	if (s == 0xff)
-		return;
-
 	/* The definitive test */
 	if (ide_identify (dev) == 0)
 		return;
-
 
 	kprintf ("  %s: %s %s %s (ata v%u), %d MB\n", 
 		(dev->devnum == IDE_MASTER) ? "Master" : "Slave ", 
 		dev->model, dev->serial, dev->fwrev, dev->ata_version_max,
 		(dev->nsectors * dev->blocksize) >> 20 );
 
-
-//	ide_reset (dev);
+	read_partitions (dev);
 
 	return;
-
-
 
 }
 
 
 
 static void
-ide_init (u8 ch_num, u16 iobase, u8 irq)
+ide_init (u8 ch_num, u16 iobase, u8 irq, void *fp)
 {
 	struct _channels *channel = &channels[ch_num];
 
@@ -369,17 +412,18 @@ ide_init (u8 ch_num, u16 iobase, u8 irq)
 	channel->drive[IDE_MASTER].channel = channel;
 	channel->drive[IDE_SLAVE].channel = channel;
 
-	/* If we can read the same thing we write, 
-	 * we have a controller. */
+
+	/* If we can read the same thing we write, there is a controller. 
+	 * It should be: DRQ_OFF but it won't if there are no drives! */
 	ide_cmd_write (channels->drive, ide_seccount0, 0b10101010);
+	ide_cmd_write (channels->drive, ide_lba0, 0b01010101);
 	if (ide_cmd_read (channels->drive, ide_seccount0) != 0b10101010)
 		return;
+	if (ide_cmd_read (channels->drive, ide_lba0) != 0b01010101)
+		return;
 
+	intr_install_handler (irq, fp);
 
-	intr_install_handler (irq, (u64)&do_ide);
-
-
-	/* TODO: don't know if we have enough evidence yet... */
 	kprintf ("IDE%d, detected controller at %p irq %u\n", 
 		channel->devnum, iobase, irq);
 
@@ -387,23 +431,7 @@ ide_init (u8 ch_num, u16 iobase, u8 irq)
 	ide_init_dev (channel, IDE_SLAVE);
 	ide_init_dev (channel, IDE_MASTER);
 
-
 }
-
-
-
-void
-init_disks (void)
-{
-	ide_init (IDE_CH1, 0x1f0, 14);
-	ide_init (IDE_CH2, 0x170, 15);
-
-	//ide_write_blocks (&channels[0].drive[IDE_MASTER], b, 1, 1);
-	//ide_read_blocks (&channels[0].drive[IDE_MASTER], b, 1, 1);
-
-	return;
-}
-
 
 
 
@@ -412,93 +440,205 @@ init_disks (void)
 
 
 static inline void
-ide_prepare_rwop(struct _drive *dev, u64 sector, u16 count, u8 cmd)
+ide_prepare_rwop (struct _drive *dev, u8 cmd, u64 sector, size_t count)
 {
 	ide_dev_sel (dev);
 
 	ide_cmd_write (channels->drive, ide_seccount0, count >> 8);
+	ide_cmd_write (channels->drive, ide_lba0, ((u64)sector >> 24) & 0xff);
+	ide_cmd_write (channels->drive, ide_lba1, ((u64)sector >> 32) & 0xff);
+	ide_cmd_write (channels->drive, ide_lba2, ((u64)sector >> 48) & 0xff);
+
+	ide_cmd_write (channels->drive, ide_seccount0, count & 0xff);
 	ide_cmd_write (channels->drive, ide_lba0, (u64)sector & 0xff);
 	ide_cmd_write (channels->drive, ide_lba1, ((u64)sector >> 8) & 0xff);
 	ide_cmd_write (channels->drive, ide_lba2, ((u64)sector >> 16) & 0xff);
 
-/*	ide_cmd_write (channels->drive, ide_seccount0, count & 0xff);
-	ide_cmd_write (channels->drive, ide_lba0, ((u64)sector >> 24) & 0xff);
-	ide_cmd_write (channels->drive, ide_lba1, ((u64)sector >> 32) & 0xff);
-	ide_cmd_write (channels->drive, ide_lba2, ((u64)sector >> 48) & 0xff);
-*/
 
 	ide_cmd_write (channels->drive, ide_cmdreg, cmd);
-
-
-	ide_ready_wait (dev);
-
 }
 
 
 
-/* Reads some blocks from an ide disk.
- * dev: where to read from
- * data: pointer to store the data we read
- * sector: position on dev
- * count: sector cont
- */
-void
-ide_read_blocks (struct _drive *dev, void *data, u64 sector, u16 count)
+struct _drive *
+ide_get_dev (dev_t *device)
+{
+	switch (device->minor) {
+		case 0 ... 15:
+			return &channels[0].drive[IDE_MASTER];
+		case 16 ... 31:
+			return &channels[0].drive[IDE_SLAVE];
+		case 32 ... 47:
+			return &channels[1].drive[IDE_MASTER];
+		case 48 ... 63:
+			return &channels[1].drive[IDE_SLAVE];
+	}
+
+	return NULL;
+}
+
+
+
+static size_t
+ide_partition_pos (struct _drive *dev, u32 minor, size_t pos)
+{
+	/* Even though we just support primary partitions (4 at most),
+	 * dev->part[] has 16 elements. 
+	 * It's statically allocated so it goes to the bss section 
+	 * and partition->len is 0 if partition doesn't exists. */
+	struct _partition *p = &dev->part[minor % 16];
+
+	if (p->len == 0 || pos > p->len)
+		return (unsigned)-1;
+
+	return p->base + pos;
+}
+
+
+
+static size_t
+ide_read_blocks (struct _drive *dev, size_t sector, void *data, size_t count)
 {
 	u16 *dptr = data;
+	size_t seccount;
 
-	/* Ok, although I detect lba48, I can't make it work,
-	 * 512 * pow(2,24) ought to be enough for anybody :) */
-	ide_prepare_rwop(dev, sector, count, IDECMD_READ_SECTORS);
+	/* data needs to be >= dev->blocksize */
+	seccount = count / dev->blocksize;
+	if (seccount == 0)
+		return 0;
 
+	ide_prepare_rwop (dev, IDECMD_READ_SECTORS_EXT, sector, seccount);
 
-	u16 rbytes = dev->blocksize * count;
+	/* We read 2 bytes on each read */
+	count = seccount * dev->blocksize >> 1;
 
 	/* This can be greatly optimized, no hurry */
 	do {
 		/* Note we don't check for a null pointer dereference */
 		*dptr++ = ide_cmd_read16 (dev, ide_datareg);
 
-		ide_cmd_write (channels->drive, ide_cmdreg, IDECMD_FLUSH_CACHE);
+		// kprintf ("%c", *((u8 *)dptr - 2));
+		// kprintf ("%c", *((u8 *)dptr - 1));
 
-		rbytes -= 2;
+		if (--count == 0)
+			break;
+	} while (1);
 
-	} while (rbytes);
+	return seccount * dev->blocksize;
+}
 
+
+/* Reads some blocks from an ide disk.
+ * device: where to read from
+ * pos: position relative to device
+ * addr: pointer to store the data we read
+ * count: size of addr
+ */
+static size_t
+ide_read (dev_t *device, size_t pos, void *addr, size_t count)
+{
+	struct _drive *dev;
+	size_t realpos;
+
+	dev = ide_get_dev (device);
+	if (dev == NULL)
+		return 0;
+
+	realpos = ide_partition_pos (dev,device->minor, pos);
+	if (realpos == (unsigned)-1)
+		return 0;
+
+	return ide_read_blocks (dev, realpos, addr, count);
 }
 
 
 
-/* Writes some blocks to disk */
-void
-ide_write_blocks (struct _drive *dev, void *data, u64 sector, u16 count)
+static size_t
+ide_write_blocks (struct _drive *dev, size_t sector, void *data, size_t count)
 {
-	u64 remb;
 	u16 *dptr = (u16 *)data;
+	size_t seccount;
 
-	ide_prepare_rwop(dev, sector, count, IDECMD_WRITE_SECTORS);
+	seccount = count / dev->blocksize;
+	if (seccount == 0)
+		return 0;
 
-	/* 2 bytes get written on each operation,
-	 * the loop has to run half of the time */
-	remb = dev->blocksize * count >> 1;
+	ide_prepare_rwop (dev, IDECMD_WRITE_SECTORS_EXT, sector, seccount);
+
+	count = seccount * dev->blocksize >> 1;
 
 	do {
 		ide_cmd_write16 (dev, ide_datareg, *dptr++);
 
 		ide_cmd_write (channels->drive, ide_cmdreg, IDECMD_FLUSH_CACHE);
 
-	} while (--remb);
+		if (--count == 0)
+			break;
+	} while (1);
+
+	return seccount * dev->blocksize;
+}
 
 
+
+/* Writes some blocks to disk */
+static size_t
+ide_write (dev_t *device, size_t pos, void *addr, size_t count)
+{
+	struct _drive *dev;
+	size_t realpos;
+
+	dev = ide_get_dev (device);
+	if (dev == NULL)
+		return 0;
+
+	realpos = ide_partition_pos (dev,device->minor, pos);
+	if (realpos == (unsigned)-1)
+		return 0;
+
+	return ide_write_blocks (dev, realpos, addr, count);
+}
+
+
+
+static size_t
+ide_open (dev_t *device)
+{
+	struct _drive *dev;
+
+	dev = ide_get_dev (device);
+	if (dev == NULL)
+		return 0;
+
+	return dev->blocksize;
 }
 
 
 
 
-hddrive
-ide_get_root(void)
+static struct bdevsw hd_ops = {
+	.open = &ide_open,
+	.close = NULL,
+	.read = &ide_read,
+	.write = &ide_write,
+	.ioctl = NULL,
+	.size = NULL,
+	.halt = NULL
+};
+
+
+
+void
+init_disks (void)
 {
-	return &channels[0].drive[IDE_MASTER];
+	ide_init (IDE_CH1, 0x1f0, 14, do_ide1);
+	ide_init (IDE_CH2, 0x170, 15, do_ide2);
+	//ide_init (IDE_CH3, 0x1e8, , do_ide3);
+	//ide_init (IDE_CH4, 0x168, , do_ide4);
+
+	bdev_register_dev (&hd_ops, BMAJOR_HD);
+
+	return;
 }
 
 

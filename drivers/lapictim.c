@@ -21,11 +21,11 @@ lapic_get_current_count (void)
 
 
 void
-init_lapic_timer (u64 intr_handler, u32 hz)
+init_lapic_timer (void *intr_handler, u32 hz)
 {
 	u32 lapictic;
 
-	intr_install_handler (LAPIC_TIMER_INTR, (u64)intr_handler);
+	intr_install_handler (LAPIC_TIMER_INTR, intr_handler);
 
 
 	/* Divide configuration register (timer divisor), divide by 1 */

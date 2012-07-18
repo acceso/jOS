@@ -128,7 +128,7 @@ init_rtc (void)
 	struct tm tim;
 
 
-	intr_install_handler (8, (u64)&do_rtc);
+	intr_install_handler (8, do_rtc);
 
 	interrupts_disable (); /* --------------- */
 

@@ -9,9 +9,10 @@ DEBUG = -DDEBUG
 
 SOURCES = \
 	boot/boot32.o kernel/main.o \
-	drivers/disk.o drivers/keyboard.o drivers/lapictim.o drivers/pit.o \
-		drivers/rtc.o drivers/vga.o \
-	fs/fs.o fs/partition.o \
+	drivers/block.o drivers/char.o drivers/disk.o drivers/keyboard.o drivers/lapictim.o \
+	drivers/pit.o drivers/rtc.o drivers/vga.o \
+	fs/fs.o \
+		fs/ext2/dentry.o fs/ext2/file.o fs/ext2/inode.o fs/ext2/super.o \
 	kernel/acpi.o kernel/cpu.o kernel/timers.o kernel/traps.o kernel/intr.o \
 	mm/mm.o mm/kcache.o mm/kma.o mm/kmalloc.o mm/phys.o \
 	include/stdio.o include/stdlib.o include/string.o include/time.o \
@@ -49,7 +50,7 @@ bochs: $(SOURCES)
 
 
 clean:
-	rm -f *.o jOS */*.o
+	rm -f *.o jOS */*.o */*/*.o
 	cd ./test && make clean
 
 
