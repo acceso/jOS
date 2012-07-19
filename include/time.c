@@ -11,7 +11,7 @@
 #define DAYSECS	86400
 
 
-u64
+time_t
 mktime (struct tm *tim)
 {
 	/* It should work with dates >= 2000 and < 2100. */

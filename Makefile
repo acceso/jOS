@@ -11,7 +11,7 @@ SOURCES = \
 	boot/boot32.o kernel/main.o \
 	drivers/block.o drivers/char.o drivers/disk.o drivers/keyboard.o drivers/lapictim.o \
 	drivers/pit.o drivers/rtc.o drivers/vga.o \
-	fs/fs.o \
+	fs/fs.o fs/buffer.o fs/inode.o fs/namei.o \
 		fs/ext2/dentry.o fs/ext2/file.o fs/ext2/inode.o fs/ext2/super.o \
 	kernel/acpi.o kernel/cpu.o kernel/timers.o kernel/traps.o kernel/intr.o \
 	mm/mm.o mm/kcache.o mm/kma.o mm/kmalloc.o mm/phys.o \
@@ -40,7 +40,7 @@ endif
 
 all: $(SOURCES)
 	ld $(LDFLAGS) -o jOS $(SOURCES)
-	scripts/run.sh qemu
+	scripts/run.sh
 
 qemu: all
 

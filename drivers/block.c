@@ -29,7 +29,7 @@ bopen (dev_t *dev)
 
 
 size_t
-bread (dev_t *dev, size_t pos, void *addr, size_t count)
+breadu (dev_t *dev, size_t pos, void *addr, size_t count)
 {
 	if (dev->major >= BMAJORMAX)
 		return 0;

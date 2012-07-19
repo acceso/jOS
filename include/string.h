@@ -8,11 +8,15 @@
 
 
 s8 strcmp (const char *s1, const char *s2);
-s8 strncmp (const char *s1, const char *s2, u16 l);
+s8 strncmp (const char *s1, const char *s2, size_t l);
 void strcpy (char *dst, char *src);
-void strncpy (char *dst, char *src, s16 l);
-u16 strlen (char *s);
-
+void strncpy (char *dst, char *src, size_t l);
+void memcpy (void *dst, void *src, size_t l);
+size_t strlen (const char *s);
+char *strchr (const char *s, int c);
+size_t strcspn (const char *s1, const char *s2);
+size_t strspn (const char *s1, const char *s2);
+s16 strlen2sep (const char *s, const char sep);
 
 
 #endif /* STRING_H */

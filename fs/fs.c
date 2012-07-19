@@ -1,57 +1,68 @@
 
-/* 
- * TODO: use a lsab for inodes?
- */
 
 #include <stdint.h>
+#include <stdio.h>
 
+#include <lib/kernel.h>
 #include <lib/list.h>
+
+#include <mm/kmalloc.h>
 
 #include <drivers/device.h>
 #include <drivers/disk.h>
 
-#include <mm/kmalloc.h>
-
-#include "fs.h"
 #include "ext2/super.h"
+#include "fs.h"
+#include "inode.h"
+#include "namei.h"
+#include "stat.h"
 
 
-static struct inode *root;
 
-static struct list_head fslist;
-
+static struct fs *fs[FSN];
+extern struct inode *root;
 
 
 struct inode *
 fs_mount (dev_t *dev, const char *dir)
 {
-	struct super *sb;
-	struct fs *fs;
 	struct inode *inode;
+	struct super *sb;
+	u8 i;
 
-	list_foreach_entry (fs, &fslist, l) {
-		sb = fs->super_read (dev);
+	for (i = 0; i < FSN; i++) {
+		sb = fs[i]->prepare_mount (dev);
 		if (sb != NULL)
 			break;
 
 		return NULL;
 	}
 
-	inode = kmalloc (sizeof (struct inode));
 
-	inode->dev.major = dev->major;
-	inode->dev.minor = dev->minor;
-//	inode->num = sb->root inode...
-//	inode->covered = sb;
+	if (*dir == '/' && *(dir + 1) == '\0')
+		return sb->ops->inode_read (sb, 2);
+
+// TODO: ....
+	inode = namei (dir);
+	if (inode == 0 || !S_ISDIR(inode->mode) || inode->covered)
+		return NULL;
 
 	return inode;
 }
 
 
-void
-fs_register (struct fs *fs)
+
+u8
+fs_register (struct fs *fsn)
 {
-	list_add (&fslist, &fs->l);
+	static u8 id;
+
+	if (id >= FSN)
+		kpanic ("Too many registered filesystems!");
+
+	fs[id++] = fsn;
+
+	return id;
 }
 
 
@@ -62,6 +73,14 @@ init_fs (dev_t *rdev)
 	init_ext2 ();
 
 	root = fs_mount (rdev, "/");
+
+
+	/* TODO: probar con nombre utf8 ... */
+/*	struct inode *i = namei ("/prueba");
+	if (i != NULL)
+		kprintf ("->%lu\n", i->num);
+	TODO: pasar esto a read() e intentar leer el archivo
+*/
 }
 
 

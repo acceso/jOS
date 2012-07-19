@@ -9,6 +9,10 @@
 #include <drivers/block.h>
 #include <drivers/device.h>
 
+#include "ext2.h"
+#include "inode.h"
+
+
 
 #define EXT2_SUPER_MAGIC	0xEF53
 
@@ -28,7 +32,10 @@
 #define EXT2_GOOD_OLD_REV	0
 #define EXT2_DYNAMIC_REV	1
 
+#define EXT2_GOOD_OLD_INODE_SIZE	128
 
+
+struct super_ops ext2_ops;
 
 struct ext2_super {
 	u32 s_inodes_count; /* Total number of inodes */
@@ -59,22 +66,38 @@ struct ext2_super {
 	u32 s_rev_level; /* EXT2_GOOD_OLD_REV, EXT2_DYNAMIC_REV */
 	u16 s_def_resuid; /* Default uid for reserved blocks (0) */
 	u16 s_def_resgid; /* Default gid for reserved blocks (0) */
+
+	/* EXT2_DYNAMIC_REV */
+	u32 s_first_ino; /* First usable inode. */
+	u16 s_inode_size; /* Size of struct inode, EXT2_GOOD_OLD_INODE_SIZE
+			   * or 1<<s_inode_size */
+	u16 s_block_group_nr; /* Block group nr hosting this superblock */
+	u32 s_feature_compat; /* bitmask of compatible features */
+	u32 s_feature_incompat; /* bitmask of incompatible features */
+	u32 s_feature_ro_compat; /* mount r-o if any is unsupported */
+	char s_uuid[16]; /* Unique id */
+	char s_volume_name[16]; /* Label */
+	char s_last_mounted[64]; /* Dir where last mounted */
+	u32 s_algo_bitmap; /* compression methods */
 } __attribute__((packed));
+
 
 
 static struct super *
 ext2_super_read (dev_t *dev)
 {
-	size_t blocksize;
-	char buf[512];
 	struct ext2_super *e2sb;
 	struct super *super;
+	char buf[512];
+	size_t blocksize;
+	struct ext2_super_ext2 *e2sbpriv;
 
 	blocksize = bopen (dev);
 	if (blocksize == 0)
 		return NULL;
 
-	if (bread (dev, 1024 / blocksize, buf, 512) == 0)
+	/* With this math blocksize has to be <= 1024 */
+	if (breadu (dev, 1024 / blocksize, buf, 512) == 0)
 		return NULL;
 
 	e2sb = (struct ext2_super *) buf;
@@ -89,24 +112,69 @@ ext2_super_read (dev_t *dev)
 	super->dev.major = dev->major;
 	super->dev.minor = dev->minor;
 	super->blocksize = 1024 << e2sb->s_log_block_size;
-//	super->ops = 
+	super->blocksizephys = blocksize;
+	list_init (&super->bcache);
+	list_init (&super->icache);
+	super->ops = &ext2_ops;
 	super->magic = EXT2_SUPER_MAGIC;
+	/* TODO... */
 //	super->time = 
-//	super->mounted = 
 	super->flags = 0;
 	if (e2sb->s_state != EXT2_VALID_FS)
 		super->flags |= SUPER_ERROR_FS;
+
+	super->priv = kmalloc (sizeof (struct ext2_super_ext2));
+	if (super->priv == NULL)
+		oom (__func__);
+
+	e2sbpriv = super->priv;
+
+	/* TODO: one gives 7 and the other 8 for my test fs, I should 
+	   properly round them up */
+	//e2sbpriv->nblocks = e2sb->s_inodes_count / e2sb->s_inodes_per_group;
+	e2sbpriv->nblocks = 1 + (e2sb->s_blocks_count / e2sb->s_blocks_per_group);
+	e2sbpriv->bgroup_base = 2; /* This table is just after the superblock */
+	e2sbpriv->inode_size = e2sb->s_inode_size;
+	e2sbpriv->inodes_per_group = e2sb->s_inodes_per_group;
+	e2sbpriv->inodes_max = e2sb->s_inodes_count;
+	e2sbpriv->bg_desc_per_block = blocksize / sizeof (struct ext2_super_ext2);
 
 	return super;
 }
 
 
 
+static void
+ext2_super_write (struct super *sb)
+{
+	return;
+}
+
+
+
+struct super_ops ext2_ops = {
+	.super_read = ext2_super_read,
+	.super_write = ext2_super_write,
+	.inode_read = ext2_inode_read,
+	.inode_write = ext2_inode_write
+};
+
+
+
+static struct super *
+ext2_prepare_mount (dev_t *dev)
+{
+	return ext2_super_read (dev);
+}
+
+
 
 static struct fs ext2 = {
 	.name = "ext2",
-	.super_read = ext2_super_read
+
+	.prepare_mount = ext2_prepare_mount
 };
+
 
 
 void
@@ -114,7 +182,6 @@ init_ext2 (void)
 {
 	fs_register (&ext2);
 }
-
 
 
 
