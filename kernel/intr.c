@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 #include <lib/bitset.h>
+#include <lib/debug.h>
 #include <lib/cpu.h>
 #include <lib/kernel.h>
 #include <lib/mem.h>
@@ -31,7 +32,7 @@ ioapic_regsel (u8 reg)
 
 
 
-u32
+static u32
 ioapic_read (u8 reg)
 {
 	ioapic_regsel (reg);
@@ -62,8 +63,9 @@ static u64
 ioapic_redir_read (u8 n)
 {
 	u64 v;
-
-	u8 reg = ioapic_redir_nint_to_reg (ioapic[0].pic[n].dest);
+	u8 reg;
+	
+	reg = ioapic_redir_nint_to_reg (ioapic[0].pic[n].dest);
 
 	v = ioapic_read (reg + 1);
 	v <<= 32;
@@ -115,7 +117,6 @@ ioapic_redir (u8 n, u64 val)
 		val |= (1 << 13);
 
 
-
 	ioapic_redir_write (n, val);
 }
 
@@ -137,7 +138,6 @@ ioapic_redir_unmask (u8 n)
 	else
 		kprintf ("edge sensitive\n");
 */
-
 	ioapic_redir_write (n, ioapic_redir_read (n) & ~(1 << 16));
 }
 

@@ -7,15 +7,15 @@
 
 
 
-/* interrupt gates: if = 0 (no more interrupts until iret)
- * trap gates: leave if untouched */
+/* interrupt gates: "if" = 0 (no more interrupts until iret)
+ * trap gates: leave "if" untouched */
 #define GATE_INT  0x8e
 #define GATE_TRAP 0x8f
 
 
 
 #define __isr__		\
-	__attribute__ ((aligned(16))) static void
+	__attribute__ ((aligned (16))) static void
 
 
 
@@ -109,7 +109,7 @@ struct intr_frame {
 	u64 rflags;
 	u64 retrsp;
 	u64 ss;
-} __attribute__((__packed__));
+} __attribute__ ((__packed__));
 
 
 
@@ -130,7 +130,7 @@ struct intr_frame_err {
 	u64 rflags;
 	u64 retrsp;
 	u64 ss;
-} __attribute__((__packed__));
+} __attribute__ ((__packed__));
 
 
 

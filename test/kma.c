@@ -24,7 +24,6 @@ init_kmalloc (void)
 }
 
 
-
 int
 main (int argc, char **argv)
 {

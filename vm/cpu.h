@@ -1,6 +1,6 @@
 
-#ifndef KERNEL_CPU_H
-#define KERNEL_CPU_H
+#ifndef VM_CPU_H
+#define VM_CPU_H
 
 
 #include <stdint.h>
@@ -10,21 +10,21 @@
 
 
 
-struct _cpu {
+struct cpu {
 	u8 id;
 	struct _lapic *lapic;
 	u64 hz;
 };
 
 
-struct _sys {
-	struct _cpu cpu[1];
+struct sys {
+	struct cpu cpu[1];
 	u64 busspeed;
 	u8 has8259;
 };
 
 
-struct _gdt {
+struct gdt {
 	u16 limit;
 	u16 base1;
 	u8 base2;
@@ -33,7 +33,7 @@ struct _gdt {
 	u8 base3;
 	u32 base4;
 	u32 reserved;
-} __attribute__((__packed__));
+} __attribute__ ((__packed__));
 
 
 
@@ -44,5 +44,5 @@ struct _gdt {
 void init_cpu ();
 
 
-#endif /* KERNEL_CPU_H */
+#endif /* VM_CPU_H */
 

@@ -7,7 +7,7 @@
 
 
 
-static u64 inline
+inline static u64
 div (u64 n, u32 d)
 {
 	u32 q, r;

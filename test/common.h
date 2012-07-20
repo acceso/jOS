@@ -21,6 +21,15 @@ kprintf (const char *fmt, va_list argp)
 
 
 void
+oom (const char *str)
+{
+	printf ("%s\n", str);
+	exit (0);
+}
+
+
+
+void
 kputs (const char *s)
 {
 	puts (s);

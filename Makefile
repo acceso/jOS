@@ -1,9 +1,8 @@
 
-#elf = elf32
 elf = elf64
 
 K_PAGE_OFFSET = 0xffff800000000000
-#K_PAGE_OFFSET = 0x0
+
 
 DEBUG = -DDEBUG
 
@@ -11,12 +10,14 @@ SOURCES = \
 	boot/boot32.o kernel/main.o \
 	drivers/block.o drivers/char.o drivers/disk.o drivers/keyboard.o drivers/lapictim.o \
 	drivers/pit.o drivers/rtc.o drivers/vga.o \
-	fs/fs.o fs/buffer.o fs/inode.o fs/namei.o \
+	fs/fs.o fs/buffer.o fs/inode.o fs/namei.o fs/file.o fs/filedesc.o \
 		fs/ext2/dentry.o fs/ext2/file.o fs/ext2/inode.o fs/ext2/super.o \
-	kernel/acpi.o kernel/cpu.o kernel/timers.o kernel/traps.o kernel/intr.o \
+	kernel/acpi.o kernel/timers.o kernel/traps.o kernel/intr.o kernel/task.o \
+		kernel/elf.o \
 	mm/mm.o mm/kcache.o mm/kma.o mm/kmalloc.o mm/phys.o \
 	include/stdio.o include/stdlib.o include/string.o include/time.o \
 	lib/kernel.o lib/tree.o lib/mem.o \
+	vm/cpu.o vm/pg.o vm/vma.o \
 	$()
 
 

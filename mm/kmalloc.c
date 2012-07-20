@@ -1,8 +1,10 @@
 
 #include <stdint.h>
+#include <string.h>
 
 #include "kcache.h"
 #include "kma.h"
+#include "mm.h"
 
 
 
@@ -52,6 +54,33 @@ kmalloc (size_t size)
 	return kma_alloc (size);
 }
 
+
+
+void *
+xkmallocf (size_t size, const char *msg)
+{
+	void *ptr;
+
+	ptr = kmalloc (size);
+	if (ptr == NULL)
+		oom (msg);
+
+	return ptr;
+}
+
+
+
+void *
+xkmallocf0 (size_t size, const char *msg)
+{
+	void *p;
+	
+	p = xkmallocf (size, msg);
+
+	memset (p, '\0', size);
+
+	return p;
+}
 
 
 void

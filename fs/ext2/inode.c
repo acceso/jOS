@@ -71,7 +71,7 @@ struct ext2_bgroup_dt {
 	u16 bg_used_dirs_count; /* inodes for directories in the group */
 	u16 bg_pad;
 	char bg_reserved[12];
-} __attribute__((packed));
+} __attribute__ ((__packed__));
 
 
 
@@ -97,7 +97,7 @@ struct ext2_inode {
 	u32 i_dir_acl; /* For regular files, high 32 bits of the file size. */
 	u32 i_faddr; /* Location of file fragment. Always 0... */
 	char i_osd2[12]; /* */
-} __attribute__((packed));
+} __attribute__ ((__packed__));
 
 
 
@@ -113,7 +113,7 @@ struct ext2_dirent {
 	u8 name_len;
 	u8 file_type;
 	char name[EXT2_NAME_LEN];
-} __attribute__((packed));
+} __attribute__ ((__packed__));
 
 
 
@@ -136,7 +136,10 @@ ext2_inode_read (struct super *sb, u64 inum)
 
 	bgroup = (inum - 1) / sbpriv->inodes_per_group;
 
-	buf = ext2_bread (sb, sbpriv->bgroup_base + bgroup);
+	/* there are: sb->blocksize / sizeof (struct ext2_bg_desc)
+	   block descriptor entries on each block. */
+	buf = ext2_bread (sb, sbpriv->bgroup_base
+		+ bgroup / (sb->blocksize / sizeof (struct ext2_bg_desc)));
 
 	e2desc = (struct ext2_bg_desc *) buf->data;
 
@@ -158,7 +161,7 @@ ext2_inode_read (struct super *sb, u64 inum)
 
 	e2ino = (struct ext2_inode *) buf->data;
 
-	e2ino += iindex;
+	e2ino += (iindex % (sb->blocksize / sbpriv->inode_size));
 
 	inode = iget (sb, inum);
 	if (inode->count > 0)
@@ -178,9 +181,7 @@ ext2_inode_read (struct super *sb, u64 inum)
 	inode->ctime = e2ino->i_ctime;
 	inode->covered = NULL;
 	inode->flags = e2ino->i_flags;
-	inode->priv = kmalloc (sizeof (struct ext2_inode_priv));
-	if (inode->priv == NULL)
-		oom (__func__);
+	inode->priv = xkmalloc (sizeof (struct ext2_inode_priv));
 
 	ipriv = (struct ext2_inode_priv *)inode->priv;
 
@@ -195,35 +196,54 @@ ext2_inode_read (struct super *sb, u64 inum)
 }
 
 
-void
-ext2_inode_write (struct super *sb, struct inode *inode)
+
+static size_t 
+ext2_bmap (struct inode *inode, off_t offset)
 {
-	return;
+	struct ext2_inode_priv *ipriv = inode->priv;
+	size_t nblock;
+	struct bhead *block;
+
+	nblock = offset / inode->sb->blocksize;
+
+/*	kprintf ("%s inode %u block %u located in %u\n",
+		__func__, inode->num, nblock, ipriv->blocks[nblock]); */
+
+	if (nblock < 12)
+		return ipriv->blocks[nblock];
+	else if (nblock < 12 + (inode->sb->blocksize >> 2)) {
+		if (ipriv->blocks[12] == 0)
+			return 0;
+
+		block = bread (inode->sb, ipriv->blocks[12]);
+
+		return *(u32 *)(block->data + 4 * (nblock - 12));
+	}
+	/* TODO: as maths are too complex to me :), 
+	 * still no double nor triply indirect block supported.
+	 * This means a limit of blocksize * 268 bytes. 
+	 * BTW, I could just return 0 instead of a panic but this way,
+	 * I'll know when I need it. */
+	else kpanic ("No double nor triply indirect block supported yet\n");
+
+	return 0;
+
 }
 
 
 
 static struct bhead *
-ext2_read_block (struct inode *inode, size_t block)
+ext2_block_read (struct inode *inode, off_t offset)
 {
-	struct ext2_inode_priv *ipriv = inode->priv;
 	size_t blk;
 
-	/* TODO: 12+1 * blocksize (1024 probably) limited */
-	blk = 0;
-	if (block <= 12)
-		blk = ipriv->blocks[block];
-	/* 
-	else if (block <= )
-	else ... 
-	*/
-	else kpanic ("No double nor triply indirect block supported yet\n");
-
+	blk = bmap (inode, offset);
 	if (blk == 0)
 		return NULL;
 
 	return bread (inode->sb, blk);
 }
+
 
 
 static struct inode *
@@ -239,14 +259,15 @@ ext2_lookup (struct inode *inode, const char *name, u8 len)
 
 	/* TODO: not tested if a dir spans two blocks... */
 	while (offset <= inode->filesize) {
-		buffer = ext2_read_block (inode, block);
+		buffer = ext2_block_read (inode, block);
 		if (buffer == NULL)
 			break;
 
 		dirent = buffer->data;
 
 		while ((void *)dirent < buffer->data + inode->sb->blocksize) {
-			if (strncmp (name, dirent->name, len) == 0)
+			if (len == dirent->name_len &&
+				strncmp (name, dirent->name, len) == 0)
 				/* Err... this has to be adapted 
 				 * to support mount points, something like:
 				 * (inode->covered) ? inode->covered->sb 
@@ -268,20 +289,21 @@ ext2_lookup (struct inode *inode, const char *name, u8 len)
 
 
 struct inode_ops ext2_inode_ops = {
-	.create = NULL,
+//	.create = NULL,
 	.lookup = ext2_lookup,
-	.link = NULL,
-	.unlink = NULL,
-	.symlink = NULL,
-	.mkdir = NULL,
-	.rmdir = NULL,
-	.mknod = NULL,
-	.rename = NULL,
-	.readlink = NULL,
-	.follow_link = NULL,
-	.bmap = NULL,
-	.truncate = NULL,
-	.permission = NULL
+//	.link = NULL,
+//	.unlink = NULL,
+//	.symlink = NULL,
+//	.mkdir = NULL,
+//	.rmdir = NULL,
+//	.mknod = NULL,
+//	.rename = NULL,
+//	.readlink = NULL,
+//	.follow_link = NULL,
+	.bmap = ext2_bmap,
+//	.truncate = NULL,
+//	.permission = NULL,
+	.block_read = ext2_block_read
 };
 
 

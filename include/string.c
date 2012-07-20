@@ -46,7 +46,7 @@ strcpy (char *dst, char *src)
 
 
 void
-strncpy (char *dst, char *src, size_t l)
+strncpy (char *dst, char *src, s64 l)
 {
 	while (*src) {
 		if (--l < 0)
@@ -60,7 +60,9 @@ strncpy (char *dst, char *src, size_t l)
 void
 memcpy (void *dst, void *src, size_t l)
 {
-	strncpy ((char *)dst, (char *)src, l);
+	/* Could be made faster... */
+	while (l--)
+		*(u8 *)dst++ = *(u8 *)src++;
 }
 
 
@@ -113,6 +115,19 @@ strspn (const char *s1, const char *s2)
 			return sc1 - s1;
 
 	return sc1 - s1;
+}
+
+
+
+void *
+memset (void *s, u8 c, size_t n)
+{
+	u8 *p = s;
+
+	while (n--)
+		*p++ = c;
+
+	return s;
 }
 
 

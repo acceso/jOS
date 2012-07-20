@@ -319,7 +319,7 @@ ide_identify (struct _drive *dev)
 /***************************************************/
 
 
-typedef struct __attribute__((packed)) {
+typedef struct __attribute__ ((__packed__)) {
 	u8 flags;
 	u8 head_start; u8 sec_start; u8 cyl_start;
 	u8 ptype;

@@ -14,10 +14,12 @@ if [ "$1" = "bochs" ]; then
 	/opt/bochs/bin/bochs -qf $BASE/jOS/scripts/jOSbochsrc
 
 
-else # qemu por defecto:
+else # default to qemu:
 
-	# control+alt+2 para entrar en modo monitor
-	#EXTRA="-S" # para que espere a gdb
+	# control+alt+2 enters monitor mode
+	#EXTRA="-S" # wait for gdb
+	# to get 1gb page tables: -cpu kvm64,+pdpe1gb ,
+	# it seems unimplemented, see: target-i386/cpuid.c on qemu source :(
 	qemu-system-x86_64 -name jOS -s $EXTRA -fda ${BASE}/root.img \
 		-drive if=ide,index=0,media=disk,file=${BASE}/referencia.img \
 		-boot a -no-reboot -m 1024 $*

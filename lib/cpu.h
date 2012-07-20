@@ -22,7 +22,7 @@ union _cpuregs32 {
 	struct {
 		u32 eax;
 		char s[12];
-		u8 c; /* This is for the string termiator */
+		u8 c; /* This is for the string terminator */
 	};
 };
 

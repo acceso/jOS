@@ -5,6 +5,7 @@
 
 #include <lib/debug.h>
 #include <lib/kernel.h>
+#include <lib/mem.h>
 
 #include <drivers/vga.h>
 
@@ -20,7 +21,7 @@ set_idt_reg (void *base, u16 limit)
 	struct {
 		u16 limit;
 		void *base;
-	} __attribute__((__packed__)) idt_reg;
+	} __attribute__ ((__packed__)) idt_reg;
 
 	idt_reg.base = base;
 	idt_reg.limit = limit;
@@ -294,7 +295,7 @@ static struct {
 	u16 offset2;
 	u32 offset3;
 	u32 reserved;
-} __attribute__((__packed__, aligned(8))) idtentry[256];
+} __attribute__ ((__packed__, aligned (8))) idtentry[256];
 
 
 
@@ -310,8 +311,8 @@ idt_set_gate (u8 num, void *addr, u16 selector, u16 flags)
 	 * It sucks but it's better than any other solution */
 	addr += 16;
 
-	idtentry[num].offset1 = (u64)addr & 0xFFFF;
-	idtentry[num].offset2 = ((u64)addr >> 16) & 0xFFFF;
+	idtentry[num].offset1 = (u64)addr & 0xffff;
+	idtentry[num].offset2 = ((u64)addr >> 16) & 0xffff;
 	idtentry[num].offset3 = ((u64)addr >> 32);
 	idtentry[num].selector = selector;
 	idtentry[num].flags = flags;

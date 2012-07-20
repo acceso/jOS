@@ -3,8 +3,6 @@
 #define FS_EXT2_EXT2_H
 
 
-#define E2PRIV(_p)	((struct ext2_super_ext2 *)_p)
-
 
 struct ext2_bg_desc {
 	u32 bg_block_bitmap; /* Block address of block usage bitmap, 1 used */
@@ -14,7 +12,7 @@ struct ext2_bg_desc {
 	u16 bg_free_inodes_count; /* Number of unallocated inodes in group */
 	u16 bg_used_dirs_count; /* Number of directories in group */
 	char pad[14];
-} __attribute__((packed));
+} __attribute__ ((__packed__));
 
 
 

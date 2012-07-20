@@ -7,7 +7,7 @@
 
 
 
-static void inline
+inline static void
 bitset (u64 *word, u64 pos) 
 {
 	asm volatile (
@@ -21,7 +21,7 @@ bitset (u64 *word, u64 pos)
 
 
 /* Set the nth bit starting from "ptr". */
-static void inline
+inline static void
 bitsetptr (void *ptr, u16 pos)
 {
 	/* Math is math :) This is like (a/b, a%b) or (byte, bit) */
@@ -30,7 +30,7 @@ bitsetptr (void *ptr, u16 pos)
 
 
 
-static void inline
+inline static void
 bitclear (u64 *word, u64 pos)
 {
 	asm volatile (
@@ -42,7 +42,7 @@ bitclear (u64 *word, u64 pos)
 
 
 
-static void inline
+inline static void
 bitclearptr (void *ptr, u16 pos)
 {
 	bitclear (ptr + ((pos >> 3) & ~0b111), pos & 0b111111);
@@ -50,7 +50,7 @@ bitclearptr (void *ptr, u16 pos)
 
 
 
-static void inline
+inline static void
 bittoggle (u64 *word, u64 pos)
 {
 	asm volatile (
@@ -62,7 +62,7 @@ bittoggle (u64 *word, u64 pos)
 
 
 
-static u8 inline
+inline static u8
 bittest (u64 word, u8 pos)
 {
 	while (pos) {
@@ -87,7 +87,7 @@ bittest (u64 word, u8 pos)
 
 /* Returns the position of the leftmost set bit.
  * -1 for 0, 0 for (unsigned)-1 */
-static s8 inline
+inline static s8
 bitscan_left (u64 word)
 {
 	if (word == 0)
@@ -98,7 +98,7 @@ bitscan_left (u64 word)
 
 
 /* Same thing starting from the LSB */
-static s8 inline
+inline static s8
 bitscan_right (u64 word)
 {
 	if (word == 0)

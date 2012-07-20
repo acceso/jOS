@@ -358,12 +358,21 @@ give_first_and_split_buddies (u8 idx, u8 power)
 
 
 
+
+static u8 kma_init_done;
+
+
 /* This is the main allocation function */
 void *
 kma_alloc (size_t size)
 {
 	u8 i = 0;
 	u8 power;
+
+
+	if (kma_init_done == 0)
+		kpanic ("Memory subsystem not yet initialized!");
+
 
 	/* The user should be using the pysical allocator */
 	if (size > PAGE_SIZE)
@@ -410,7 +419,7 @@ kma_busy_cmp (const struct tnode *a, const struct tnode *b)
 void
 kma_init (void)
 {
-	int i;
+	u8 i;
 	
 	list_init (&kma.pages);
 
@@ -418,6 +427,9 @@ kma_init (void)
 		list_init (&kma.free[i].l);
 
 	tree_init (&kma.used, kma_busy_cmp);
+
+
+	kma_init_done = 1;
 
 
 	busy_block_cache = kcache_create ("kma", sizeof (struct busy_block));

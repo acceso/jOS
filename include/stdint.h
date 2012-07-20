@@ -29,6 +29,7 @@ typedef u64 size_t;
 typedef u32 uid_t;
 typedef u32 gid_t;
 typedef u64 time_t;
+typedef s64 off_t;
 
 
 #define WARN_UNUSED	__attribute__((warn_unused_result))

@@ -94,11 +94,7 @@ _start:
 
 #if 1
 	/* 0x9f is like 0x87 but no caching, TODO: enable! */
-	map_pde $pml2b, $0x9f + 0x40000000
-	map_pde $pml2c, $0x9f + 0x80000000
 	map_pde $pml2d, $0x9f + 0xc0000000
-	movl $pml2b + 0x7, pml3 + 0x8
-	movl $pml2c + 0x7, pml3 + 0x10
 	movl $pml2d + 0x7, pml3 + 0x18
 #endif
 	movl $pml3 + 0x7, pml4
@@ -134,40 +130,20 @@ start64:
 	movabsq $kmain, %rax
 	callq *%rax
 
-
-
 /* should be unreachable: */
 1:
 	//hlt
 	jmp 1b
 
-	.data
 
+
+	.data
 
 	.align 8
 
 gdt_ptr:
-	.word gdt_end - gdt - 1
-	.long gdt
-
-	.align 16
-gdt:
-	.quad 0x0000000000000000
-k_cs:
-	.quad 0x00af98000000ffff
-k_ds:
-	.quad 0x008f92000000ffff
-
-	/* This one pads to the next 4 byte aligned addr 
-	 * but it's free */
-	.quad 0x0000000000000000
-
-	.global tssd
-tssd:
-	.quad 0x0000000000000000
-	.quad 0x0000000000000000
-gdt_end:
-
+	.word 48 - 1
+	.long gdt - K_PAGE_OFFSET
 
 
 
@@ -179,8 +155,6 @@ gdt_end:
 	.lcomm pml3, 0x1000
 	.lcomm pml2, 0x1000
 #if 1
-	.lcomm pml2b, 0x1000
-	.lcomm pml2c, 0x1000
 	.lcomm pml2d, 0x1000
 #endif
 

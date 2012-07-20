@@ -26,7 +26,7 @@ reset
 set terminal png
 set xdata time
 set timefmt "%Y%m%d"
-set format x "%y%m%d"
+set format x "%y%m"
 set ylabel "locs"
 set grid
 EOG

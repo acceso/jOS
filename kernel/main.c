@@ -1,6 +1,6 @@
 
 
-#define VERSION "0.0.0.17"
+#define VERSION "0.0.0.21"
 
 
 #include <stdint.h>
@@ -15,9 +15,10 @@
 #include <drivers/keyboard.h>
 #include <drivers/vga.h>
 
+#include <vm/cpu.h>
 #include <kernel/acpi.h>
-#include <kernel/cpu.h>
 #include <kernel/intr.h>
+#include <kernel/task.h>
 #include <kernel/timers.h>
 #include <kernel/traps.h>
 
@@ -26,6 +27,9 @@
 
 static dev_t root = { .major = BMAJOR_HD, .minor = 1 };
 
+struct task *current;
+
+
 
 u16
 kmain (void)
@@ -33,21 +37,26 @@ kmain (void)
 	cls ();
 	kputs ("Booting jOS kernel " VERSION "!\n");
 
-	init_cpu ();
 	init_acpi ();
 	init_exceptions ();
 	init_interrupts ();
 	init_memory ();
+	init_cpu ();
 
-	/* Abrimos la caja de pandora: */
 	interrupts_enable ();
 
 	init_timers ();
 	init_keyboard ();
 
+	current = init_task ();
+
 	init_disks ();
 	init_fs (&root);
 
+elf_load ("/main");
+
+	while (1)
+		;
 
 	return 0;
 }

@@ -12,6 +12,7 @@
 #include <drivers/disk.h>
 
 #include "ext2/super.h"
+#include "file.h"
 #include "fs.h"
 #include "inode.h"
 #include "namei.h"
@@ -70,17 +71,11 @@ fs_register (struct fs *fsn)
 void
 init_fs (dev_t *rdev)
 {
+	init_files ();
 	init_ext2 ();
 
 	root = fs_mount (rdev, "/");
 
-
-	/* TODO: probar con nombre utf8 ... */
-/*	struct inode *i = namei ("/prueba");
-	if (i != NULL)
-		kprintf ("->%lu\n", i->num);
-	TODO: pasar esto a read() e intentar leer el archivo
-*/
 }
 
 

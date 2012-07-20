@@ -23,21 +23,23 @@ struct super;
 
 
 struct inode_ops {
-	int (*create) (struct inode *, const char *, u8, u8);
+//	int (*create) (struct inode *, const char *, u8, u8);
 	struct inode *(*lookup) (struct inode *, const char *, u8);
-	int (*link) (struct inode *, struct inode *, const char *, u8);
-	int (*unlink) (struct inode *, const char *, u8);
-	int (*symlink) (struct inode *, const char *, u8, const char *);
-	int (*mkdir) (struct inode *, const char *, u8, u8);
-	int (*rmdir) (struct inode *, const char *, u8);
-	int (*mknod) (struct inode *, const char *, u8, u8, dev_t);
-	int (*rename) (struct inode *, const char *, u8, struct inode *, const char *, u8);
-	int (*readlink) (struct inode *, char *, u16);
-	int (*follow_link) (struct inode *, struct inode *, u8, u8);
-	int (*bmap) (struct inode *, size_t);
-	void (*truncate) (struct inode *);
-	int (*permission) (struct inode *, u8);
+//	int (*link) (struct inode *, struct inode *, const char *, u8);
+//	int (*unlink) (struct inode *, const char *, u8);
+//	int (*symlink) (struct inode *, const char *, u8, const char *);
+//	int (*mkdir) (struct inode *, const char *, u8, u8);
+//	int (*rmdir) (struct inode *, const char *, u8);
+//	int (*mknod) (struct inode *, const char *, u8, u8, dev_t);
+//	int (*rename) (struct inode *, const char *, u8, struct inode *, const char *, u8);
+//	int (*readlink) (struct inode *, char *, u16);
+//	int (*follow_link) (struct inode *, struct inode *, u8, u8);
+	size_t (*bmap) (struct inode *, off_t);
+//	void (*truncate) (struct inode *);
+//	int (*permission) (struct inode *, u8);
+	struct bhead *(*block_read) (struct inode *, off_t);
 };
+
 
 struct inode {
 	struct super *sb;
@@ -80,10 +82,10 @@ struct super {
 
 struct super_ops {
 	struct super *(*super_read) (dev_t *dev);
-	void (*super_write) (struct super *sb);
+//	void (*super_write) (struct super *sb);
 	struct inode *(*inode_read) (struct super *sb, u64 inum);
-	void (*inode_write) (struct super *sb, struct inode *inode);
-	//void (*statfs) (struct super *, struct statfs *);
+//	void (*inode_write) (struct super *sb, struct inode *inode);
+//	void (*statfs) (struct super *, struct statfs *);
 };
 
 
@@ -94,6 +96,24 @@ struct fs {
 	// read, stat, super_free, get_inode...
 };
 
+
+
+
+struct file {
+	struct list_head l;
+	struct inode *inode;
+	//struct file_operations *ops;
+	u16 count;
+};
+
+
+
+struct filedesc {
+	struct file *file;
+	u16 mode;
+	u16 flags;
+	off_t pos;
+};
 
 
 

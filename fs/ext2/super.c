@@ -79,7 +79,7 @@ struct ext2_super {
 	char s_volume_name[16]; /* Label */
 	char s_last_mounted[64]; /* Dir where last mounted */
 	u32 s_algo_bitmap; /* compression methods */
-} __attribute__((packed));
+} __attribute__ ((__packed__));
 
 
 
@@ -105,9 +105,7 @@ ext2_super_read (dev_t *dev)
 	if (e2sb->s_magic != EXT2_SUPER_MAGIC)
 		return NULL;
 
-	super = kmalloc (sizeof (struct super));
-	if (super == NULL)
-		oom (__func__);
+	super = xkmalloc (sizeof (struct super));
 
 	super->dev.major = dev->major;
 	super->dev.minor = dev->minor;
@@ -123,9 +121,7 @@ ext2_super_read (dev_t *dev)
 	if (e2sb->s_state != EXT2_VALID_FS)
 		super->flags |= SUPER_ERROR_FS;
 
-	super->priv = kmalloc (sizeof (struct ext2_super_ext2));
-	if (super->priv == NULL)
-		oom (__func__);
+	super->priv = xkmalloc (sizeof (struct ext2_super_ext2));
 
 	e2sbpriv = super->priv;
 
@@ -144,19 +140,9 @@ ext2_super_read (dev_t *dev)
 
 
 
-static void
-ext2_super_write (struct super *sb)
-{
-	return;
-}
-
-
-
 struct super_ops ext2_ops = {
 	.super_read = ext2_super_read,
-	.super_write = ext2_super_write,
-	.inode_read = ext2_inode_read,
-	.inode_write = ext2_inode_write
+	.inode_read = ext2_inode_read
 };
 
 

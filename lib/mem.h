@@ -11,8 +11,8 @@
 
 
 
-#define __pa(_x) ((_x) - K_PAGE_OFFSET)
-#define __va(_x) ((_x) + K_PAGE_OFFSET)
+#define __pa(_x) ((void *)(((u64)_x) - K_PAGE_OFFSET))
+#define __va(_x) ((void *)(((u64)_x) + K_PAGE_OFFSET))
 
 
 

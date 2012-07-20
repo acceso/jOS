@@ -6,6 +6,7 @@
 #include <lib/bitset.h>
 #include <lib/debug.h>
 #include <lib/kernel.h>
+#include <lib/mem.h>
 
 #include "mm.h"
 #include "phys.h"
@@ -30,7 +31,7 @@ typedef struct {
 	u32 config_table;
 	u32 boot_loader_name;
 	u32 apm_table;
-} __attribute__((packed)) mboot_info;
+} __attribute__ ((__packed__)) mboot_info;
 
 
 /* mboot_info->mmap_addr contains a pointer to an array 
@@ -40,7 +41,7 @@ typedef struct {
 	u64 addr;
 	u64 len;
 	u32 type;
-} __attribute__((packed)) mboot_mmap_info;
+} __attribute__ ((__packed__)) mboot_mmap_info;
 
 
 
@@ -67,11 +68,11 @@ get_mm_range (void **addr, u16 n)
 	u8 i = 0;
 
 
-	mmap = (mboot_mmap_info *)(u64)mbi->mmap_addr;
+	mmap = (mboot_mmap_info *)__va (mbi->mmap_addr);
 
-
-	while ((u64)mmap < mbi->mmap_addr + mbi->mmap_length) {
+	while ((void *)mmap < __va (mbi->mmap_addr) + mbi->mmap_length) {
 		if (mmap->type == 1 && i++ == n) {
+			/* These are physical memory addresses. */
 			*addr = (void *)mmap->addr;
 			return mmap->len;
 		}
@@ -97,7 +98,8 @@ oom (const char *str)
 void
 init_memory (void)
 {
-	mbi = (mboot_info *)((u64)mbi32);
+	/* This needs some extra magic */
+	mbi = (mboot_info *)__va (*(u32 *)__va (&mbi32));
 
 	kprintf ("%i lower and %i upper KB detected.\n",
 		mbi->mem_lower, mbi->mem_upper);

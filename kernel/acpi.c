@@ -14,7 +14,7 @@
 #include <lib/mem.h>
 #include <sys/io.h>
 
-#include <kernel/cpu.h>
+#include <vm/cpu.h>
 #include <kernel/intr.h>
 
 #include "acpi.h"
@@ -45,7 +45,7 @@ struct acpi_header {
 	char creatorid[4];
 	u32 creatorrev;
 	u32 entry;
-} __attribute__((__packed__));
+} __attribute__ ((__packed__));
 
 
 
@@ -57,30 +57,30 @@ struct acpi_apic {
 			u8 cpuid;
 			u8 lapicid;
 			u32 flags0; /* Just one: enabled (bit 0) */
-		} __attribute__((__packed__));
+		} __attribute__ ((__packed__));
 		struct { /* When type 1, ioapic info */
 			u8 ioapicid;
 			u8 reserved1;
 			u32 ioapicaddr;
 			u32 gsib;
-		} __attribute__((__packed__));
+		} __attribute__ ((__packed__));
 		struct { /* When type 2, interrupt source override */
 			u8 bus;
 			u8 source;
 			u32 gsi;
 			u16 flags2;
-		} __attribute__((__packed__));
+		} __attribute__ ((__packed__));
 		/* There are types for nmi, lapic nmi, address override
 		 * and for sapic (ia64 apic) and x2apic */
 	};
-} __attribute__((__packed__));
+} __attribute__ ((__packed__));
 
 
 
 
 extern struct _ioapic ioapic[];
 extern struct _lapic lapic[];
-extern struct _sys sys;
+extern struct sys sys;
 
 /* For now, just one lapic and ioapic are supported :( */
 static void
@@ -99,7 +99,7 @@ acpi_walk_madt (void *t, s32 l)
 	}
 
 	sys.cpu[0].lapic = &lapic[0];
-	lapic[0].base = (void *)__va (*(u32 *)(u64)(t + 0));
+	lapic[0].base = (void *)__va (*(u32 *)(void *)(t + 0));
 
 
 	if (*(u32 *)(t + 4) & 0x1)
@@ -217,7 +217,7 @@ struct rsdp {
 	char oemid[6];
 	u8 rev;
 	u32 rsdt;
-} __attribute__((__packed__));
+} __attribute__ ((__packed__));
 
 
 
@@ -246,8 +246,8 @@ acpi_search_table (u64 signature)
 		if (ranges[i] == 0)
 			break;
 
-		for (p = (u64 *)ranges[i][0]; p < (u64 *)ranges[i][1];
-			p += 2) {
+		for (p = (u64 *)__va (ranges[i][0]);
+			p < (u64 *)__va (ranges[i][1]); p += 2) {
 
 			if (siglen == 64 && *p == signature)
 				return (void *)p;
@@ -257,7 +257,7 @@ acpi_search_table (u64 signature)
 
 		}
 
-	} while (ranges[++i][0] != 0);
+	} while (__va (ranges[++i][0]) != 0);
 
 
 	return NULL;
@@ -294,8 +294,8 @@ init_acpi (void)
 
 
 
-	h = (struct acpi_header *)(u64)rsdpp->rsdt;
-	if (h->sig != RSDT_SIG)
+	h = (struct acpi_header *)__va (rsdpp->rsdt);
+	if (h == NULL || h->sig != RSDT_SIG)
 		kpanic ("Invalid RSDT in ACPI table\n");
 
 	if (acpi_csum (h, h->l) != 0)
@@ -304,7 +304,7 @@ init_acpi (void)
 
 	for (p = (u32 *)&h->entry; p < (u32 *)((u64)h + h->l); p++) {
 
-		struct acpi_header *h2 = (struct acpi_header *)(u64)*p;
+		struct acpi_header *h2 = (struct acpi_header *)__va (*p);
 
 
 		if (acpi_csum (h2, h2->l) != 0)

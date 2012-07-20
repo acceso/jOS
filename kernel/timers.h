@@ -7,7 +7,7 @@
 
 #include <lib/cpu.h>
 
-#include <kernel/cpu.h>
+#include <vm/cpu.h>
 
 
 
@@ -33,7 +33,7 @@ ticks (void)
 
 
 
-extern struct _sys sys;
+extern struct sys sys;
 
 
 

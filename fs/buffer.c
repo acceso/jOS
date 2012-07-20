@@ -22,12 +22,10 @@ getblk (struct super *sb, size_t block)
 		}
 	}
 
-	bh = kmalloc (sizeof (struct bhead));
-	if (bh == NULL)
-		oom (__func__);
+	bh = xkmalloc (sizeof (struct bhead));
 
 	bh->bnum = block;
-	bh->data = kmalloc (sb->blocksize);
+	bh->data = xkmalloc (sb->blocksize);
 	if (bh->data == NULL) {
 		kfree (bh);
 		return NULL;
