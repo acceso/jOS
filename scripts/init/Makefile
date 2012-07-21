@@ -7,12 +7,18 @@
 CC = gcc
 CFLAGS = -Wall
 
+NAME = init
+
 # Simple infinite loop, can't think of anything more minimal
 # as there aren't syscalls yet:
-elf1: elf1.S
-	as -o elf1.o elf1.S
-	ld -o elf1 elf1.o
-	strip elf1
+main: $(NAME).S
+	as -o $(NAME).o $(NAME).S
+	ld -o $(NAME) $(NAME).o
+	strip $(NAME)
+
+main2: $(NAME)2.c
+	$(CC) -O0 -Wall -o $(NAME)2 -static-libgcc $(NAME)2.c
+
 
 # next:
 # - same stuff + exit syscall

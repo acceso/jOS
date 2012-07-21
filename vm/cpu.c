@@ -21,13 +21,17 @@ __attribute__((aligned (8))) char stack[STACKSIZE];
 
 
 
-#define GDT_NENTRIES	6
+#define GDT_NENTRIES	10
 
 u64 gdt[GDT_NENTRIES] __attribute__ ((aligned (16))) = {
-	0x0000000000000000,
+	0x0000000000000000, /* unused */
+	0x0000000000000000, /* unused */
+	0x0000000000000000, /* unused */
+	0x0000000000000000, /* unused */
 	0x00af98000000ffff, /* k_cs */
 	0x008f92000000ffff, /* k_ds */
-	0x008f92000000ffff, /* k_ss */
+	0x002ffa000000ffff, /* u_cs */
+	0x008ff2000000ffff, /* u_ds */
 	0x0000000000000000, /* tssd */
 	0x0000000000000000  /* tssd */
 };
@@ -105,6 +109,7 @@ tss_start (void)
 #endif
 	return;
 }
+
 
 
 void

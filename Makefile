@@ -13,11 +13,11 @@ SOURCES = \
 	fs/fs.o fs/buffer.o fs/inode.o fs/namei.o fs/file.o fs/filedesc.o \
 		fs/ext2/dentry.o fs/ext2/file.o fs/ext2/inode.o fs/ext2/super.o \
 	kernel/acpi.o kernel/timers.o kernel/traps.o kernel/intr.o kernel/task.o \
-		kernel/elf.o \
+		kernel/elf.o kernel/exec.o \
 	mm/mm.o mm/kcache.o mm/kma.o mm/kmalloc.o mm/phys.o \
 	include/stdio.o include/stdlib.o include/string.o include/time.o \
 	lib/kernel.o lib/tree.o lib/mem.o \
-	vm/cpu.o vm/mmap.o vm/pg.o vm/vma.o \
+	vm/cpu.o vm/mmap.o vm/pg.o vm/syscall.o vm/vma.o \
 	$()
 
 
@@ -52,6 +52,7 @@ bochs: $(SOURCES)
 
 clean:
 	rm -f *.o jOS */*.o */*/*.o
+	cd ./scripts && make clean
 	cd ./test && make clean
 
 

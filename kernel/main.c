@@ -1,6 +1,6 @@
 
 
-#define VERSION "0.0.0.22"
+#define VERSION "0.0.0.23"
 
 
 #include <stdint.h>
@@ -17,12 +17,15 @@
 
 #include <vm/cpu.h>
 #include <kernel/acpi.h>
+#include <kernel/exec.h>
 #include <kernel/intr.h>
 #include <kernel/task.h>
 #include <kernel/timers.h>
 #include <kernel/traps.h>
 
 #include <fs/fs.h>
+
+#include <vm/syscall.h>
 
 
 static dev_t root = { .major = BMAJOR_HD, .minor = 1 };
@@ -50,10 +53,11 @@ kmain (void)
 
 	init_disks ();
 	init_fs (&root);
+	init_syscall ();
 
 	current = init_task ();
 
-elf_exec ("/elf1");
+	exec ("/sbin/init");
 
 	while (1)
 		;

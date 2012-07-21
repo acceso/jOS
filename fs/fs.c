@@ -8,6 +8,8 @@
 
 #include <mm/kmalloc.h>
 
+#include <vm/syscall.h>
+
 #include <drivers/device.h>
 #include <drivers/disk.h>
 
@@ -71,14 +73,66 @@ fs_register (struct fs *fsn)
 
 
 
+s64
+sys_read ()
+{
+	return 0;
+}
+
+
+
+s64
+sys_write (int fd, const void *buf, size_t count)
+{
+	/* There are _at least_ 3 problems with this function:
+	 * - it should work with any other descriptor.
+	 * - buffer should be copied to kernel space...
+	 * - kprintf shouldn't be used as it uses formats and requires 
+	 *   a \0 terminated string
+	 * and well, the terminal should be done...
+	 * */
+	if (fd != 2)
+		return 0;
+
+	kprintf (buf);
+
+	return 0;
+}
+
+
+
+s64
+sys_open (const char *path, int flags, mode_t mode)
+{
+	return 0;
+}
+
+
+
+s64
+sys_close ()
+{
+	return 0;
+}
+
+
+
+
+
+
 void
 init_fs (dev_t *rdev)
 {
 	init_files ();
 	init_ext2 ();
 
-	root = fs_mount (rdev, "/");
+	syscall_register (__NR_read, sys_read);
+	syscall_register (__NR_write, sys_write);
+	syscall_register (__NR_open, sys_open);
+	syscall_register (__NR_close, sys_close);
 
+
+	root = fs_mount (rdev, "/");
 }
 
 

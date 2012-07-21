@@ -3,12 +3,13 @@
 #define LIB_KERNEL_H
 
 
-#define K_CS 0x8
-#define K_DS 0x10
-#define K_SS 0x18
+#define K_CS 0x20
+#define K_DS 0x28
+#define U_CS 0x30
+#define U_DS 0x38
+
 
 #define STACKSIZE (8 * 1024)
-
 
 
 

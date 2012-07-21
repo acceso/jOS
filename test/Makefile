@@ -7,6 +7,5 @@ test:
 clean:
 	@rm -f *.o
 	@for a in *.c ; do rm -f `basename $$a .c` ; done
-	@cd elf && make clean
 
 

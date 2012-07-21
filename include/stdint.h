@@ -30,9 +30,17 @@ typedef u32 uid_t;
 typedef u32 gid_t;
 typedef u64 time_t;
 typedef s64 off_t;
+typedef u64 mode_t;
 
 
 #define WARN_UNUSED	__attribute__((warn_unused_result))
+
+
+
+/* A two-level approach is needed if the parameter is itself a macro.
+ * See: http://gcc.gnu.org/onlinedocs/cpp/Stringification.html */
+#define _stringify(_v)	#_v
+#define stringify(_v)	_stringify(_v)
 
 
 

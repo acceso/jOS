@@ -6,6 +6,9 @@
 
 
 
+s32 exec (const char *path);
+
+
 
 #endif /* KERNEL_EXEC_H */
 

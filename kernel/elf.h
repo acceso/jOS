@@ -8,7 +8,7 @@
 
 
 
-s32 elf_exec (s32 fd, char *path);
+s64 elf_map (const char *path);
 
 
 

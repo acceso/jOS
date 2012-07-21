@@ -143,6 +143,9 @@ ext2_inode_read (struct super *sb, u64 inum)
 
 	e2desc = (struct ext2_bg_desc *) buf->data;
 
+	/* TODO: I'm believe this code should be:
+	 * e2desc += bgroup % (sb->blocksize / sizeof (struct ext2_bg_desc));
+	 * but I'm not sure and in the small fs I use for testing it doesn't matter. */
 	e2desc += bgroup;
 
 #if 0
@@ -156,8 +159,7 @@ ext2_inode_read (struct super *sb, u64 inum)
 
 	iindex = (inum - 1) % sbpriv->inodes_per_group;
 
-	buf = ext2_bread (sb, e2desc->bg_inode_table + 
-		(iindex * sbpriv->inode_size) / sb->blocksize);
+	buf = ext2_bread (sb, e2desc->bg_inode_table + (iindex * sbpriv->inode_size) / sb->blocksize);
 
 	e2ino = (struct ext2_inode *) buf->data;
 

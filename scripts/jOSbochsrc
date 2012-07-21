@@ -1,5 +1,5 @@
 
-#display_library: x, options="gui_debug"
+display_library: x, options="gui_debug"
 
 # ips: min: 1000000, max: 4294967295
 #cpu: count=1, ips=1000000

@@ -29,10 +29,10 @@
 	"pushq %r8\n\t"		\
 	"pushq %r9\n\t"		\
 	"pushq %r10\n\t"	\
-	"pushq %r11\n\t"	\
+	"pushq %r11\n\t"
 
 
-/* Note: gcc can't pop rbx because the iret comes before! */
+
 #define popaq() 		\
 	"popq %r11\n\t"		\
 	"popq %r10\n\t"		\

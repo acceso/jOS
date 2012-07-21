@@ -1,6 +1,7 @@
 
 #define _ASM
 #include "../lib/kernel.h"
+
 #define IA32_EFER 0x0c0000080
 
 
@@ -68,6 +69,7 @@ _start:
 	movw %ax, %es
 	movw %ax, %fs
 	movw %ax, %gs
+	movw %ax, %ss
 
 	/* Make sure paging is disabled */
 	movl %cr0, %eax
@@ -84,6 +86,7 @@ _start:
 	mov $IA32_EFER, %ecx
 	rdmsr
 	bts $8, %eax /* LME = 1. Enable long mode. */
+	bts $0, %eax /* SCE = 1. System call extension (syscall/sysret). */
 	wrmsr
 
 
@@ -113,15 +116,12 @@ _start:
 
 
 	/* jump to a 64 bit segment */
-	ljmp $K_CS, $start64
+	ljmp $K_CS, $1f
 
 
 	.code64
 
-start64:
-
-	movw $K_SS, %ax
-	movw %ax, %ss
+1:
 	movabsq $(stack + STACKSIZE), %rsp
 
 	pushq $0x0;

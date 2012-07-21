@@ -141,8 +141,9 @@ elf_load_section (s32 fd, struct elf_ph_entry *ph)
 
 
 
-s32
-elf_exec (char *path)
+/* As elf will be mapped on lower half, a signed is big enough. */
+s64
+elf_map (const char *path)
 {
 	s32 fd;
 	struct elf_header elfh;
@@ -213,11 +214,7 @@ elf_exec (char *path)
 	} while (--cur);
 
 
-	/* TODO: I'm trying to go as fast as possible here ugh :) */
-	asm volatile ("jmp %0": : "m" (elfh.e_entry));
-
-
-	return 1;
+	return elfh.e_entry;
 }
 
 
