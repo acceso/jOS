@@ -1,6 +1,8 @@
 
-
 #include <stdint.h>
+#include <string.h>
+
+#include <lib/math.h>
 
 #include <kernel/task.h>
 #include <mm/kmalloc.h>
@@ -17,43 +19,79 @@ lseek (s32 fd, off_t offset, u8 origin)
 {
 	switch (origin) {
 	case SEEK_SET:
-		current->fd[fd]->pos = offset;
+		current->fds[fd]->pos = offset;
 		break;
 	case SEEK_CUR:
-		current->fd[fd]->pos += offset;
+		current->fds[fd]->pos += offset;
 		break;
 	case SEEK_END:
-		current->fd[fd]->file->inode->filesize += offset;
+		current->fds[fd]->inode->filesize += offset;
 		break;
 	default:
 		return (off_t) -1;
 	}
 
-	return current->fd[fd]->pos;
+	return current->fds[fd]->pos;
 }
+
+
+
+
+size_t
+read (s32 fd, void *buf, size_t count)
+{
+	struct inode *inode;
+	struct bhead *block;
+	size_t rbytes;
+	off_t offset;
+	u16 len;
+
+	if (current->fds[fd]->pos > current->fds[fd]->inode->filesize)
+		return 0;
+
+	inode = current->fds[fd]->inode;
+	rbytes = current->fds[fd]->pos;
+
+	while (count) {
+		block = inode->ops->block_read (inode, current->fds[fd]->pos);
+		if (block == NULL)
+			break;
+
+		offset = current->fds[fd]->pos % inode->sb->blocksize;
+		len = min (inode->sb->blocksize - offset, count);
+
+		memcpy (buf, block->data + offset, len);
+
+		current->fds[fd]->pos += len;
+		count -= len;
+		buf += len;
+	}
+
+	return current->fds[fd]->pos - rbytes;
+}
+
 
 
 
 s8
 open (const char *path, u16 flags, u16 mode)
 {
-	struct file *file;
 	u32 fd;
 	
-	file = file_get (path);
-	if (file == NULL)
-		return -1;
-
-	for (fd = 0; fd < NOFILES; fd++)
-		if (current->fd[fd] == NULL)
+	for (fd = 0; fd < NFDS; fd++)
+		if (current->fds[fd] == NULL)
 			break;
 
-	current->fd[fd] = xkmalloc (sizeof (struct filedesc));
+	if (fd >= NFDS - 1)
+		return -1;
 
-	current->fd[fd]->file = file;
-	current->fd[fd]->mode = 0;
-	current->fd[fd]->flags = 0;
-	current->fd[fd]->pos = 0;
+	current->fds[fd] = file_get (path);
+	if (current->fds[fd] == NULL)
+		return -1;
+
+	current->fds[fd]->mode = mode;
+	current->fds[fd]->flags = flags;
+	current->fds[fd]->pos = 0;
 
 	return fd;
 }

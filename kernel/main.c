@@ -1,6 +1,6 @@
 
 
-#define VERSION "0.0.0.21"
+#define VERSION "0.0.0.22"
 
 
 #include <stdint.h>
@@ -48,12 +48,12 @@ kmain (void)
 	init_timers ();
 	init_keyboard ();
 
-	current = init_task ();
-
 	init_disks ();
 	init_fs (&root);
 
-elf_load ("/main");
+	current = init_task ();
+
+elf_exec ("/elf1");
 
 	while (1)
 		;

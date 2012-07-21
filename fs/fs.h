@@ -100,19 +100,12 @@ struct fs {
 
 
 struct file {
-	struct list_head l;
 	struct inode *inode;
-	//struct file_operations *ops;
 	u16 count;
-};
-
-
-
-struct filedesc {
-	struct file *file;
 	u16 mode;
 	u16 flags;
 	off_t pos;
+	//struct file_operations *ops;
 };
 
 

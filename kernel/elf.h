@@ -8,7 +8,7 @@
 
 
 
-s32 elf_load (char *path);
+s32 elf_exec (s32 fd, char *path);
 
 
 

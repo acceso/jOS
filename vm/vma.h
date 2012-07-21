@@ -35,7 +35,7 @@ struct mm {
 
 
 struct vma {
-	struct list_head l;
+	struct list_head l; /* Next vma */
 	struct mm *mm;
 	void *start;
 	void *end;

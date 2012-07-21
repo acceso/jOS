@@ -5,8 +5,9 @@
 
 #define K_CS 0x8
 #define K_DS 0x10
+#define K_SS 0x18
 
-#define STACKSIZE (4 * 1024)
+#define STACKSIZE (8 * 1024)
 
 
 

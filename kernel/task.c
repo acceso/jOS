@@ -4,11 +4,13 @@
 
 #include <mm/kmalloc.h>
 #include <mm/mm.h>
+#include <vm/pg.h>
 
 #include "task.h"
 
 
 static struct task *init;
+
 
 struct task *
 init_task (void)
@@ -19,8 +21,12 @@ init_task (void)
 
 	init->state = TASK_RUNNING;
 
-	for (i = 0; i < NOFILES; i++)
-		init->fd[i] = NULL;
+	for (i = 0; i < NFDS; i++)
+		init->fds[i] = NULL;
+
+	load_init_page_tables (init);
+
+	/* TODO: open /dev/std{in,out,err} */
 
 	return init;
 }

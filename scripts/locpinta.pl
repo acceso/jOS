@@ -31,12 +31,12 @@ set ylabel "locs"
 set grid
 EOG
 
-foreach (@l) {
-	my ($tim, $lns, @text) = split /\s+/;
+foreach( @l ) {
+	my( $tim, $lns, @text ) = split /\s+/;
 
 	next unless @text;
 
-	print CMD qq{set label "}, join ( ' ', @text ), qq{" at "$tim",$lns\n};
+	print CMD qq{set label "}, join( ' ', @text ), qq{" at "$tim",$lns\n};
 }
 
 

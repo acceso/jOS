@@ -10,7 +10,6 @@
 #include <kernel/intr.h>
 
 #include "cpu.h"
-#include "pg.h"
 
 
 
@@ -28,14 +27,14 @@ u64 gdt[GDT_NENTRIES] __attribute__ ((aligned (16))) = {
 	0x0000000000000000,
 	0x00af98000000ffff, /* k_cs */
 	0x008f92000000ffff, /* k_ds */
-	0x0000000000000000,
+	0x008f92000000ffff, /* k_ss */
 	0x0000000000000000, /* tssd */
 	0x0000000000000000  /* tssd */
 };
 
 
 
-struct gdt_ptr64 {
+struct gdt64_ptr {
 	u16 len;
 	void *base;
 } __attribute__ ((__packed__, aligned (8)));
@@ -45,13 +44,13 @@ struct gdt_ptr64 {
 void
 lgdtr (void *gdt, u32 len)
 {
-	struct gdt_ptr64 gdt_ptr64;
+	struct gdt64_ptr gdt64_ptr;
 
-	gdt_ptr64.base = gdt;
-	gdt_ptr64.len = len;
+	gdt64_ptr.base = gdt;
+	gdt64_ptr.len = len;
 
 	asm volatile ("lgdtq %0\n"
-		: : "m" (gdt_ptr64));
+		: : "m" (gdt64_ptr));
 }
 
 
@@ -113,8 +112,6 @@ init_cpu ()
 {
 	/* Switch to 64 bit GDTR */
 	lgdtr (gdt, 6 * GDT_NENTRIES - 1);
-
-	load_init_page_tables ();
 
 	tss_start ();
 

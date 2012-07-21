@@ -11,17 +11,16 @@
 
 extern struct task *current;
 
-#define NOFILES	32
+#define NFDS	32
 
 
-/* Adapted from linux */
 #define TASK_RUNNING		0
 
 
 struct task {
 	u8 state;
 
-	struct filedesc *fd[NOFILES];
+	struct file *fds[NFDS];
 
 	struct mm *mm;
 };
@@ -33,4 +32,5 @@ struct task *init_task (void);
 
 
 #endif /* KERNEL_TASK_H */
+
 

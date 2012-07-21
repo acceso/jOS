@@ -20,7 +20,7 @@ union _cpuregs32 {
 		u64 edxecx;
 	};
 	struct {
-		u32 eax;
+		u32 seax;
 		char s[12];
 		u8 c; /* This is for the string terminator */
 	};

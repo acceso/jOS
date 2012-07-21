@@ -32,11 +32,14 @@ fs_mount (dev_t *dev, const char *dir)
 	u8 i;
 
 	for (i = 0; i < FSN; i++) {
-		sb = fs[i]->prepare_mount (dev);
-		if (sb != NULL)
-			break;
+		if (fs[i] == NULL)
+			return NULL;
 
-		return NULL;
+		sb = fs[i]->prepare_mount (dev);
+		if (sb == NULL)
+			continue;
+
+		break;
 	}
 
 

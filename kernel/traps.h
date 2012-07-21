@@ -19,7 +19,6 @@
 
 
 
-/* Note: gcc pushes %rbx automátically! */
 #define pushaq() 		\
 	"pushq %rax\n\t"	\
 	"pushq %rcx\n\t"	\
@@ -49,16 +48,18 @@
 
 
 /* The "nop"s are to skip the function prologue, see traps.c.
- * push $0 is a fake error code.
- * The sub $16, %rsp is needed for the frame parameter to match. */
+ * pushq $0 is a fake error code. 
+ * The last "sub" is needed to make the function parameter 
+ * (intr_frame) work. */
 #define intr_enter()			\
 	asm volatile (			\
 		"nop; nop; nop; nop;"	\
 		"nop; nop; nop; nop;"	\
 		"nop; nop; nop; nop;"	\
 		"nop; nop; nop; nop;"	\
+		"pushq $0\n\t"		\
 		pushaq()		\
-		"sub $16, %rsp\n\t" 	\
+		"subq $16, %rsp\n\t"	\
 		"cld\n\t"		\
 		)
 
@@ -69,23 +70,25 @@
 		"nop; nop; nop; nop;"	\
 		"nop; nop; nop; nop;"	\
 		pushaq()		\
-		"sub $16, %rsp\n\t" 	\
+		"subq $16, %rsp\n\t"	\
 		"cld\n\t"		\
 		)
 
 
 
-
+/* The addqs undo the previous subqs */
 #define intr_exit(_n)			\
 	asm volatile (			\
-		"addq $16, %rsp\n\t" 	\
+		"addq $16, %rsp\n\t"	\
 		popaq()			\
+		"addq $8, %rsp\n\t" 	\
 		"iretq\n\t"		\
 		)
 
+
 #define intr_err_exit(_n)		\
 	asm volatile (			\
-		"addq $16, %rsp\n\t" 	\
+		"addq $16, %rsp\n\t"	\
 		popaq()			\
 		"iretq\n\t"		\
 		)
@@ -104,32 +107,15 @@ struct intr_frame {
 	u64 rdx;
 	u64 rcx;
 	u64 rax;
-	u64 retrip;
-	u64 cs;
+	u32 ecode;
+	u32 pad4;
+	u64 rip;
+	u8 cs;
+	u8 pad0; u32 pad1;
 	u64 rflags;
-	u64 retrsp;
-	u64 ss;
-} __attribute__ ((__packed__));
-
-
-
-struct intr_frame_err {
-	u64 r11;
-	u64 r10;
-	u64 r9;
-	u64 r8;
-	u64 rdi;
-	u64 rsi;
-	u64 rbx;
-	u64 rdx;
-	u64 rcx;
-	u64 rax;
-	u64 ecode;
-	u64 retrip;
-	u64 cs;
-	u64 rflags;
-	u64 retrsp;
-	u64 ss;
+	u64 rsp;
+	u8 ss;
+	u8 pad2; u32 pad3;
 } __attribute__ ((__packed__));
 
 
@@ -146,34 +132,12 @@ stack_frame_dump (struct intr_frame *r)
 	kprintf ("rdx    (%llp)\n", r->rdx);
 	kprintf ("rcx    (%llp)\n", r->rcx);
 	kprintf ("rax    (%llp)\n", r->rax);
-	kprintf ("retrip (%llp)\n", r->retrip);
-	kprintf ("cs     (%llp)\n", r->cs);
+	kprintf ("rip    (%llp)\n", r->rip);
+	kprintf ("cs     (0x%x)\n", r->cs);
 	kprintf ("rflags (%llp)\n", r->rflags);
-	kprintf ("retrsp (%llp)\n", r->retrsp);
-	kprintf ("ss     (%llp)\n", r->ss);
-	kprintf ("\n\n\n");
-}
-
-
-static inline void
-stack_frame_err_dump (struct intr_frame_err *r)
-{
-	kprintf ("r11    (%llp)\n", r->r11);
-	kprintf ("r10    (%llp)\n", r->r10);
-	kprintf ("r9     (%llp)\n", r->r9);
-	kprintf ("r8     (%llp)\n", r->r8);
-	kprintf ("rdi    (%llp)\n", r->rdi);
-	kprintf ("rsi    (%llp)\n", r->rsi);
-	kprintf ("rdx    (%llp)\n", r->rdx);
-	kprintf ("rcx    (%llp)\n", r->rcx);
-	kprintf ("rax    (%llp)\n", r->rax);
-	kprintf ("ecode  (%llp)\n", r->ecode);
-	kprintf ("retrip (%llp)\n", r->retrip);
-	kprintf ("cs     (%llp)\n", r->cs);
-	kprintf ("rflags (%llp)\n", r->rflags);
-	kprintf ("retrsp (%llp)\n", r->retrsp);
-	kprintf ("ss     (%llp)\n", r->ss);
-	kprintf ("\n\n\n");
+	kprintf ("rsp    (%llp)\n", r->rsp);
+	kprintf ("ss     (0x%x)\n", r->ss);
+	kprintf ("\n\n");
 }
 
 

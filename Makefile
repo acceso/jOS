@@ -17,7 +17,7 @@ SOURCES = \
 	mm/mm.o mm/kcache.o mm/kma.o mm/kmalloc.o mm/phys.o \
 	include/stdio.o include/stdlib.o include/string.o include/time.o \
 	lib/kernel.o lib/tree.o lib/mem.o \
-	vm/cpu.o vm/pg.o vm/vma.o \
+	vm/cpu.o vm/mmap.o vm/pg.o vm/vma.o \
 	$()
 
 
@@ -53,6 +53,10 @@ bochs: $(SOURCES)
 clean:
 	rm -f *.o jOS */*.o */*/*.o
 	cd ./test && make clean
+
+
+tags:
+	ctags -R --fields=+iaS --extra=+q
 
 
 

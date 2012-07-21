@@ -140,12 +140,11 @@ exc_7_nomathco (struct intr_frame r)
 
 
 __isr__
-exc_8_doublefault (struct intr_frame_err r)
+exc_8_doublefault (struct intr_frame r)
 {
 	intr_err_enter ();
 
 	kprintf ("Double fault! (%llp)\n", r.ecode);
-	/*stack_frame_err_dump (&r);*/
 
 	intr_err_exit ();
 }
@@ -153,7 +152,7 @@ exc_8_doublefault (struct intr_frame_err r)
 
 
 __isr__
-exc_10_tss_inval (struct intr_frame_err r)
+exc_10_tss_inval (struct intr_frame r)
 {
 	intr_err_enter ();
 
@@ -165,7 +164,7 @@ exc_10_tss_inval (struct intr_frame_err r)
 
 
 __isr__
-exc_11_nosuchsegment (struct intr_frame_err r)
+exc_11_nosuchsegment (struct intr_frame r)
 {
 	intr_err_enter ();
 
@@ -177,11 +176,11 @@ exc_11_nosuchsegment (struct intr_frame_err r)
 
 
 __isr__
-exc_12_stack (struct intr_frame_err r)
+exc_12_stack (struct intr_frame r)
 {
 	intr_err_enter ();
 
-	kprintf ("Stack exception!\n");
+	kprintf ("Stack exception, segment selector: 0x%lx\n", r.ecode);
 
 	intr_err_exit ();
 }
@@ -189,7 +188,7 @@ exc_12_stack (struct intr_frame_err r)
 
 
 __isr__
-exc_13_gp (struct intr_frame_err r)
+exc_13_gp (struct intr_frame r)
 {
 	intr_err_enter ();
 
@@ -201,7 +200,7 @@ exc_13_gp (struct intr_frame_err r)
 
 
 __isr__
-exc_14_pf (struct intr_frame_err r)
+exc_14_pf (struct intr_frame r)
 {
 	intr_err_enter ();
 
@@ -225,7 +224,7 @@ exc_16_math_pending (struct intr_frame r)
 
 
 __isr__
-exc_17_misalignment (struct intr_frame_err r)
+exc_17_misalignment (struct intr_frame r)
 {
 	intr_err_enter ();
 

@@ -42,7 +42,7 @@ mb_header:
 	.long mboot /* Start of .text */
 	.long bss - K_PAGE_OFFSET /* End of data */
 	.long eok - K_PAGE_OFFSET /* End of bss */
-	.long mbi32 /* Entry point */
+	.long _start /* Entry point */
 
 
 	/* Space for the multiboot information pointer */
@@ -118,9 +118,10 @@ _start:
 
 	.code64
 
-	.global start64
 start64:
 
+	movw $K_SS, %ax
+	movw %ax, %ss
 	movabsq $(stack + STACKSIZE), %rsp
 
 	pushq $0x0;
