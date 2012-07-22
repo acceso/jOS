@@ -6,5 +6,6 @@ test:
 
 clean:
 	@cd init && make clean
+	@rm -f loccount.svg
 
 

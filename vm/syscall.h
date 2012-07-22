@@ -36,12 +36,13 @@
 #define __NR_rt_sigaction		13
 #define __NR_rt_sigprocmask		14
 #define __NR_rt_sigreturn		15
+#define __NR_exit			60
 
 
 // ...
 
 
-#define __NR_syscall_num		16
+#define __NR_syscall_num		61
 
 
 

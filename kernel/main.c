@@ -1,6 +1,6 @@
 
 
-#define VERSION "0.0.0.23"
+#define VERSION "0.0.3"
 
 
 #include <stdint.h>
@@ -34,6 +34,7 @@ struct task *current;
 
 
 
+
 u16
 kmain (void)
 {
@@ -59,8 +60,7 @@ kmain (void)
 
 	exec ("/sbin/init");
 
-	while (1)
-		;
+	kernel_idle();
 
 	return 0;
 }

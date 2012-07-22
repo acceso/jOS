@@ -42,7 +42,13 @@ syscall_dispatch_real (void)
 		/* If syscall is out of bounds: */
 		"cmpq $" stringify (__NR_syscall_num) ", %rax\n\t"
 		"jae 1f\n\t"
+		/* TODO: This is a hack because it's easier to do it here. 
+		 * I'm not sure of the right solution as probably interrupts
+		 * should not be allowed until a safer place... */
+		"cmpq $" stringify (__NR_exit) ", %rax\n\t"
+		"je 2f\n\t"
 		pushaq()
+		"2:\n\t"
 	);
 
 	/* This code can't be merged with the previous one,
@@ -62,7 +68,7 @@ syscall_dispatch_real (void)
 		"sysretq\n\t"
 	);
 
-	kpanic ("Shouldn't be reached as we never return normally from syscall.");
+	kernel_idle();
 }
 
 

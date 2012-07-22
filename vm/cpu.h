@@ -45,7 +45,8 @@ struct gdt {
 
 
 
-/* TODO: use the flag mask on MSR_SFMASK */
+/* TODO: use the flag mask on MSR_SFMASK
+ * and maybe some register cleaning. */
 #define usermode_jump(_addr)					\
 	do {							\
 		msr_write (MSR_STAR, ((u64)U_CS)<<48 		\

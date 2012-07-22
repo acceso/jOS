@@ -28,6 +28,8 @@ struct task {
 
 
 
+void kernel_idle (void);
+
 struct task *init_task (void);
 
 

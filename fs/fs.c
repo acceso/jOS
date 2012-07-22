@@ -91,7 +91,7 @@ sys_write (int fd, const void *buf, size_t count)
 	 *   a \0 terminated string
 	 * and well, the terminal should be done...
 	 * */
-	if (fd != 2)
+	if (fd < 1 || fd > 2)
 		return 0;
 
 	kprintf (buf);

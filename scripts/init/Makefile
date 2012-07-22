@@ -16,9 +16,6 @@ main: $(NAME).S
 	ld -o $(NAME) $(NAME).o
 	strip $(NAME)
 
-main2: $(NAME)2.c
-	$(CC) -O0 -Wall -o $(NAME)2 -static-libgcc $(NAME)2.c
-
 
 # next:
 # - same stuff + exit syscall
