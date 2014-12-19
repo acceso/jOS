@@ -25,8 +25,9 @@ else # default to qemu:
 	#EXTRA="-S" # wait for gdb
 	# to get 1gb page tables: -cpu kvm64,+pdpe1gb ,
 	# it seems unimplemented, see: target-i386/cpuid.c on qemu source :(
-	qemu-system-x86_64 -name jOS -s $EXTRA \
+	qemu-system-x86_64 -name jOS -s $EXTRA -machine pc-1.3,kernel_irqchip=off \
 		-drive if=ide,index=0,media=disk,file=${BASE}/referencia.img \
+		-enable-kvm \
 		-no-reboot -m 1024 $*
 fi
 

@@ -2,6 +2,8 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include <lib/kernel.h>
+
 #include <drivers/lapictim.h>
 #include <drivers/pit.h>
 #include <drivers/rtc.h>
@@ -64,7 +66,7 @@ do_lapictim (struct intr_frame r)
 static void
 tsc_calibration (void)
 {
-	u64 hz, loops;
+	u64 hz, mhz, loops;
 	u8 i;
 
 	sys.cpu[0].hz = (u64)-1;
@@ -81,8 +83,14 @@ tsc_calibration (void)
 			loops_per_jiffy = loops;
 	}
 
+	mhz = sys.cpu[0].hz / 1000000;
+
+	/* We require a 1 mhz CPU :) */
+	if (mhz == 0)
+		kpanic("Can't calibrate the cpu!!");
+
 	kprintf ("Cpu speed calibrated to: %ldMhz, %ld BogoMIPS\n",
-		sys.cpu[0].hz / 1000000, loops_per_jiffy);
+		mhz, loops_per_jiffy);
 
 }
 

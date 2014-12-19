@@ -44,6 +44,8 @@ fs_mount (dev_t *dev, const char *dir)
 		break;
 	}
 
+	if (sb == NULL)
+		kpanic("Can't mount root!");
 
 	if (*dir == '/' && *(dir + 1) == '\0')
 		return sb->ops->inode_read (sb, 2);
