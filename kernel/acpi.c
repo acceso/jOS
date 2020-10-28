@@ -45,7 +45,7 @@ struct acpi_header {
 	char creatorid[4];
 	u32 creatorrev;
 	u32 entry;
-} __attribute__ ((__packed__));
+} __attribute__ ((__packed__, __aligned__));
 
 
 

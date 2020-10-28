@@ -1,14 +1,13 @@
 
 display_library: x, options="gui_debug"
 
-# ips: min: 1000000, max: 4294967295
 #cpu: count=1, ips=1000000
 cpuid: 1g_pages=1
 
 memory: guest=1024, host=1024
 
-floppya: 1_44=/home/jose/wip/jOS/root.img, status=inserted
-ata0-master: type=disk, path="/home/jose/wip/jOS/referencia.img", mode=flat, cylinders=130, heads=16, spt=63
+floppya: 1_44=$BASE/root.img, status=inserted
+ata0-master: type=disk, path=$BASE/referencia.img, mode=flat, cylinders=130, heads=16, spt=63
 boot: floppy, disk
 
 #clock: sync=realtime, time0=local

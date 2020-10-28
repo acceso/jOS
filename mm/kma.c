@@ -157,7 +157,7 @@ kma_free_page (void *addr)
 static u8
 kma_pool_contraction (void)
 {
-	u8 i;
+	u8 i = 0;
 
 	/* Can't use list_foreach because the list can be modified
 	 * and I don't have something like list_foreach_safe */

@@ -32,7 +32,7 @@
 
 
 
-#define S_ISDIR(m)	((m) & S_IFMT) == S_IFDIR
+#define S_ISDIR(m)     (((m) & S_IFMT) == S_IFDIR)
 
 
 

@@ -141,7 +141,7 @@ elf_load_section (s32 fd, struct elf_ph_entry *ph)
 
 
 
-/* As elf will be mapped on lower half, a signed is big enough. */
+/* As ELF files will be mapped on lower half, a signed is big enough. */
 s64
 elf_map (const char *path)
 {

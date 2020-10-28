@@ -23,7 +23,7 @@ SOURCES = \
 
 CFLAGS = \
 	-ffreestanding -nostdlib -nostdinc -nostartfiles -nodefaultlibs \
-	-fno-stack-protector -mno-red-zone -mno-abm -msoft-float \
+	-fno-pie -fno-stack-protector -mno-red-zone -mno-abm -msoft-float \
 	-Wall -std=gnu99 -I include -I . -iquote . -pipe -m64 -mcmodel=large \
 	-ggdb -O2 $(DEBUG) \
 	-DK_PAGE_OFFSET=$(K_PAGE_OFFSET)

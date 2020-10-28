@@ -24,7 +24,7 @@ open CMD, "| $cmd > loccount.svg";
 
 print CMD <<EOG;
 reset
-set terminal svg size 640,480 fname "FreeSans" fsize 9 rounded dashed
+set terminal svg size 640,480 fname "FreeSans"
 set xdata time
 set timefmt "%Y%m%d"
 set format x "%y%m"

@@ -22,7 +22,7 @@ exec (const char *path)
 
 
 	/* This is like: asm volatile ("jmp *%0" : : "m" (entry));
-	 * but it changes de stack and code segments: */
+	 * but it changes the stack and code segments: */
 	usermode_jump (entry);
 
 
