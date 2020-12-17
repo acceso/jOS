@@ -42,14 +42,14 @@ struct vma {
 	u8 flags;
 	struct file *file;
 	size_t offset;
-	/* ops: open (when vma added to an address space), close, fault, 
+	/* ops: open (when vma added to an address space), close, fault,
 	 * mkwrite, access. */
 };
 
 
 
 
-void init_mm (struct mm *mm, void *pml4);
+void init_mm(struct mm *mm, void *pml4);
 
 
 

@@ -7,8 +7,8 @@
 
 
 
-void kprintf (const char *fmt, ...);
-void kputs (const char *s);
+void kprintf(const char *fmt, ...);
+void kputs(const char *s);
 
 
 

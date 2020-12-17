@@ -22,8 +22,7 @@ struct kcache *kmalloc8192;
 
 
 
-void *
-kmalloc (size_t size)
+void *kmalloc(size_t size)
 {
 	struct kcache *cache = NULL;
 
@@ -49,89 +48,85 @@ kmalloc (size_t size)
 		cache = kmalloc8192;
 
 	if (cache != NULL)
-		return kcache_alloc (cache);
+		return kcache_alloc(cache);
 
-	return kma_alloc (size);
+	return kma_alloc(size);
 }
 
 
 
-void *
-xkmallocf (size_t size, const char *msg)
+void *xkmallocf(size_t size, const char *msg)
 {
 	void *ptr;
 
-	ptr = kmalloc (size);
+	ptr = kmalloc(size);
 	if (ptr == NULL)
-		oom (msg);
+		oom(msg);
 
 	return ptr;
 }
 
 
 
-void *
-xkmallocf0 (size_t size, const char *msg)
+void *xkmallocf0(size_t size, const char *msg)
 {
 	void *p;
-	
-	p = xkmallocf (size, msg);
 
-	memset (p, '\0', size);
+	p = xkmallocf(size, msg);
+
+	memset(p, '\0', size);
 
 	return p;
 }
 
 
-void
-kfree (void *ptr)
+void kfree(void *ptr)
 {
 	/* I don't like this solution very much but this is a toy os
 	 * isn't it? */
-	if (kcache_free (kmalloc16, ptr) == 1)
+	if (kcache_free(kmalloc16, ptr) == 1)
 		return;
-	if (kcache_free (kmalloc32, ptr) == 1)
+	if (kcache_free(kmalloc32, ptr) == 1)
 		return;
-	if (kcache_free (kmalloc64, ptr) == 1)
+	if (kcache_free(kmalloc64, ptr) == 1)
 		return;
-	if (kcache_free (kmalloc128, ptr) == 1)
+	if (kcache_free(kmalloc128, ptr) == 1)
 		return;
-	if (kcache_free (kmalloc256, ptr) == 1)
+	if (kcache_free(kmalloc256, ptr) == 1)
 		return;
-	if (kcache_free (kmalloc512, ptr) == 1)
+	if (kcache_free(kmalloc512, ptr) == 1)
 		return;
-	if (kcache_free (kmalloc1024, ptr) == 1)
+	if (kcache_free(kmalloc1024, ptr) == 1)
 		return;
-	if (kcache_free (kmalloc2048, ptr) == 1)
+	if (kcache_free(kmalloc2048, ptr) == 1)
 		return;
-	if (kcache_free (kmalloc4096, ptr) == 1)
+	if (kcache_free(kmalloc4096, ptr) == 1)
 		return;
-	if (kcache_free (kmalloc8192, ptr) == 1)
+	if (kcache_free(kmalloc8192, ptr) == 1)
 		return;
 
 
-	kma_free (ptr);
+	kma_free(ptr);
 
 	return;
 }
 
 
 
-void
-init_kmalloc (void)
+void init_kmalloc(void)
 {
 	return;
 
-	kmalloc16 = kcache_create ("kmalloc-16", 16);
-	kmalloc32 = kcache_create ("kmalloc-32", 32);
-	kmalloc64 = kcache_create ("kmalloc-64", 64);
-	kmalloc128 = kcache_create ("kmalloc-128", 128);
-	kmalloc256 = kcache_create ("kmalloc-256", 256);
-	kmalloc512 = kcache_create ("kmalloc-512", 512);
-	kmalloc1024 = kcache_create ("kmalloc-1024", 1024);
-	kmalloc2048 = kcache_create ("kmalloc-2048", 2048);
-	kmalloc4096 = kcache_create ("kmalloc-4096", 4096);
-	kmalloc8192 = kcache_create ("kmalloc-8192", 8192);
+	kmalloc16 = kcache_create("kmalloc-16", 16);
+	kmalloc32 = kcache_create("kmalloc-32", 32);
+	kmalloc64 = kcache_create("kmalloc-64", 64);
+	kmalloc128 = kcache_create("kmalloc-128", 128);
+	kmalloc256 = kcache_create("kmalloc-256", 256);
+	kmalloc512 = kcache_create("kmalloc-512", 512);
+	kmalloc1024 = kcache_create("kmalloc-1024", 1024);
+	kmalloc2048 = kcache_create("kmalloc-2048", 2048);
+	kmalloc4096 = kcache_create("kmalloc-4096", 4096);
+	kmalloc8192 = kcache_create("kmalloc-8192", 8192);
 
 	return;
 }

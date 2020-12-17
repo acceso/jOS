@@ -57,7 +57,7 @@ struct ext2_super {
 	u16 s_max_mnt_count; /* # of mounts before fsck */
 	u16 s_magic; /* EXT2_SUPER_MAGIC */
 	u16 s_state; /* EXT2_ERROR_FS when mounted, EXT2_VALID_FS if not */
-	u16 s_errors; /* What to do on error: EXT2_ERRORS_... 
+	u16 s_errors; /* What to do on error: EXT2_ERRORS_...
 			 continue, mount ro or cause a kernel panic */
 	u16 s_minor_rev_level; /* Revision level */
 	u32 s_lastcheck; /* Time of last fs check */
@@ -79,12 +79,11 @@ struct ext2_super {
 	char s_volume_name[16]; /* Label */
 	char s_last_mounted[64]; /* Dir where last mounted */
 	u32 s_algo_bitmap; /* compression methods */
-} __attribute__ ((__packed__));
+} __attribute__((__packed__));
 
 
 
-static struct super *
-ext2_super_read (dev_t *dev)
+static struct super *ext2_super_read(dev_t *dev)
 {
 	struct ext2_super *e2sb;
 	struct super *super;
@@ -92,48 +91,48 @@ ext2_super_read (dev_t *dev)
 	size_t blocksize;
 	struct ext2_super_ext2 *e2sbpriv;
 
-	blocksize = bopen (dev);
+	blocksize = bopen(dev);
 	if (blocksize == 0)
 		return NULL;
 
 	/* With this math blocksize has to be <= 1024 */
-	if (breadu (dev, 1024 / blocksize, buf, 512) == 0)
+	if (breadu(dev, 1024 / blocksize, buf, 512) == 0)
 		return NULL;
 
-	e2sb = (struct ext2_super *) buf;
+	e2sb = (struct ext2_super *)buf;
 
 	if (e2sb->s_magic != EXT2_SUPER_MAGIC)
 		return NULL;
 
-	super = xkmalloc (sizeof (struct super));
+	super = xkmalloc(sizeof(struct super));
 
 	super->dev.major = dev->major;
 	super->dev.minor = dev->minor;
 	super->blocksize = 1024 << e2sb->s_log_block_size;
 	super->blocksizephys = blocksize;
-	list_init (&super->bcache);
-	list_init (&super->icache);
+	list_init(&super->bcache);
+	list_init(&super->icache);
 	super->ops = &ext2_ops;
 	super->magic = EXT2_SUPER_MAGIC;
 	/* TODO... */
-//	super->time = 
+	// super->time =
 	super->flags = 0;
 	if (e2sb->s_state != EXT2_VALID_FS)
 		super->flags |= SUPER_ERROR_FS;
 
-	super->priv = xkmalloc (sizeof (struct ext2_super_ext2));
+	super->priv = xkmalloc(sizeof(struct ext2_super_ext2));
 
 	e2sbpriv = super->priv;
 
-	/* TODO: one gives 7 and the other 8 for my test fs, I should 
+	/* TODO: one gives 7 and the other 8 for my test fs, I should
 	   properly round them up */
-	//e2sbpriv->nblocks = e2sb->s_inodes_count / e2sb->s_inodes_per_group;
+	// e2sbpriv->nblocks = e2sb->s_inodes_count / e2sb->s_inodes_per_group;
 	e2sbpriv->nblocks = 1 + (e2sb->s_blocks_count / e2sb->s_blocks_per_group);
 	e2sbpriv->bgroup_base = 2; /* This table is just after the superblock */
 	e2sbpriv->inode_size = e2sb->s_inode_size;
 	e2sbpriv->inodes_per_group = e2sb->s_inodes_per_group;
 	e2sbpriv->inodes_max = e2sb->s_inodes_count;
-	e2sbpriv->bg_desc_per_block = blocksize / sizeof (struct ext2_super_ext2);
+	e2sbpriv->bg_desc_per_block = blocksize / sizeof(struct ext2_super_ext2);
 
 	return super;
 }
@@ -147,10 +146,9 @@ struct super_ops ext2_ops = {
 
 
 
-static struct super *
-ext2_prepare_mount (dev_t *dev)
+static struct super *ext2_prepare_mount(dev_t *dev)
 {
-	return ext2_super_read (dev);
+	return ext2_super_read(dev);
 }
 
 
@@ -163,10 +161,9 @@ static struct fs ext2 = {
 
 
 
-void
-init_ext2 (void)
+void init_ext2(void)
 {
-	fs_register (&ext2);
+	fs_register(&ext2);
 }
 
 

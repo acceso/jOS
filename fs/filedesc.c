@@ -14,8 +14,7 @@
 
 
 
-off_t
-lseek (s32 fd, off_t offset, u8 origin)
+off_t lseek(s32 fd, off_t offset, u8 origin)
 {
 	switch (origin) {
 	case SEEK_SET:
@@ -28,7 +27,7 @@ lseek (s32 fd, off_t offset, u8 origin)
 		current->fds[fd]->inode->filesize += offset;
 		break;
 	default:
-		return (off_t) -1;
+		return (off_t) - 1;
 	}
 
 	return current->fds[fd]->pos;
@@ -37,8 +36,7 @@ lseek (s32 fd, off_t offset, u8 origin)
 
 
 
-size_t
-read (s32 fd, void *buf, size_t count)
+size_t read(s32 fd, void *buf, size_t count)
 {
 	struct inode *inode;
 	struct bhead *block;
@@ -53,14 +51,14 @@ read (s32 fd, void *buf, size_t count)
 	rbytes = current->fds[fd]->pos;
 
 	while (count) {
-		block = inode->ops->block_read (inode, current->fds[fd]->pos);
+		block = inode->ops->block_read(inode, current->fds[fd]->pos);
 		if (block == NULL)
 			break;
 
 		offset = current->fds[fd]->pos % inode->sb->blocksize;
-		len = min (inode->sb->blocksize - offset, count);
+		len = min(inode->sb->blocksize - offset, count);
 
-		memcpy (buf, block->data + offset, len);
+		memcpy(buf, block->data + offset, len);
 
 		current->fds[fd]->pos += len;
 		count -= len;
@@ -73,11 +71,10 @@ read (s32 fd, void *buf, size_t count)
 
 
 
-s8
-open (const char *path, u16 flags, u16 mode)
+s8 open(const char *path, u16 flags, u16 mode)
 {
 	u32 fd;
-	
+
 	for (fd = 0; fd < NFDS; fd++)
 		if (current->fds[fd] == NULL)
 			break;
@@ -85,7 +82,7 @@ open (const char *path, u16 flags, u16 mode)
 	if (fd >= NFDS - 1)
 		return -1;
 
-	current->fds[fd] = file_get (path);
+	current->fds[fd] = file_get(path);
 	if (current->fds[fd] == NULL)
 		return -1;
 

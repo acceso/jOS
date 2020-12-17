@@ -6,7 +6,7 @@
 
 
 
-s32 exec (const char *path);
+s32 exec(const char *path);
 
 
 

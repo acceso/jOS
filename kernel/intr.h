@@ -80,16 +80,14 @@ struct _lapic {
 extern struct _lapic lapic[1];
 
 
-static inline u32
-lapic_read (u32 reg)
+static inline u32 lapic_read(u32 reg)
 {
 	return *(volatile u32 *)(lapic[0].base + reg);
 }
 
 
 
-static inline void
-lapic_write (u32 reg, u32 val)
+static inline void lapic_write(u32 reg, u32 val)
 {
 	volatile u32 *addr = (volatile u32 *)(lapic[0].base + reg);
 
@@ -98,32 +96,29 @@ lapic_write (u32 reg, u32 val)
 
 
 
-static inline void
-lapic_eoi (void)
+static inline void lapic_eoi(void)
 {
-	lapic_write (APIC_EOI, 0);
+	lapic_write(APIC_EOI, 0);
 }
 
 
-static inline void
-interrupts_disable (void)
+static inline void interrupts_disable(void)
 {
-	asm volatile ("cli\n\t");
+	asm volatile("cli\n\t");
 }
 
 
-static inline void
-interrupts_enable (void)
+static inline void interrupts_enable(void)
 {
-	asm volatile ("sti\n\t");
+	asm volatile("sti\n\t");
 }
 
 
 
 
-void ioapic_redir_unmask (u8 n);
+void ioapic_redir_unmask(u8 n);
 
-void init_interrupts (void);
+void init_interrupts(void);
 
 
 #endif /* KERNEL_INTR_H */

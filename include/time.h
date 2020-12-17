@@ -20,7 +20,7 @@ struct tm {
 
 
 
-time_t mktime (struct tm *tim);
+time_t mktime(struct tm *tim);
 
 
 #endif /* TIME_H */

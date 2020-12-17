@@ -11,11 +11,10 @@
 #define DAYSECS	86400
 
 
-time_t
-mktime (struct tm *tim)
+time_t mktime(struct tm *tim)
 {
 	/* It should work with dates >= 2000 and < 2100. */
-	return  946684800 + /* This is 2000-01-01 00:00, our 0. */
+	return 946684800 + /* This is 2000-01-01 00:00, our 0. */
 		DAYSECS * 365 * (tim->tm_year - 2000) + /* Years */
 		DAYSECS * ((tim->tm_year - 2000 + 3) / 4) + /* Leap years */
 		DAYSECS * (tim->tm_yday - 1) +	/* Days in this year */

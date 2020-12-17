@@ -17,13 +17,13 @@
 struct sys sys;
 
 
-__attribute__((aligned (8))) char stack[STACKSIZE];
+__attribute__((aligned(8))) char stack[STACKSIZE];
 
 
 
 #define GDT_NENTRIES	10
 
-u64 gdt[GDT_NENTRIES] __attribute__ ((aligned (16))) = {
+u64 gdt[GDT_NENTRIES] __attribute__((aligned(16))) = {
 	0x0000000000000000, /* unused */
 	0x0000000000000000, /* unused */
 	0x0000000000000000, /* unused */
@@ -41,19 +41,18 @@ u64 gdt[GDT_NENTRIES] __attribute__ ((aligned (16))) = {
 struct gdt64_ptr {
 	u16 len;
 	void *base;
-} __attribute__ ((__packed__, aligned (8)));
+} __attribute__((__packed__, aligned(8)));
 
 
 
-void
-lgdtr (void *gdt, u32 len)
+void lgdtr(void *gdt, u32 len)
 {
 	struct gdt64_ptr gdt64_ptr;
 
 	gdt64_ptr.base = gdt;
 	gdt64_ptr.len = len;
 
-	asm volatile ("lgdtq %0\n"
+	asm volatile("lgdtq %0\n"
 		: : "m" (gdt64_ptr));
 }
 
@@ -78,47 +77,45 @@ struct tss {
 	u64 reserved3;
 	u16 reserved;
 	u16 iomapbase;
-} __attribute__ ((__packed__,aligned (8)));
+} __attribute__((__packed__, aligned(8)));
 
 
 
-static void
-tss_start (void)
+static void tss_start(void)
 {
 #if 0
 	u64 tsspa;
 	struct gdt *tssd;
 
 	tssd = gdt[...];
-	
-	tsspa = (u64)__pa (&tss);
+
+	tsspa = (u64)__pa(&tss);
 
 	tssd.limit = 0x67;
-	/*tssd.limit = sizeof (struct tss) - 1;*/
+	/*tssd.limit = sizeof(struct tss) - 1;*/
 	tssd.base1 = (u64)&tsspa & 0xffff;
 	tssd.base2 = ((u64)&tsspa >> 16) & 0xff;
 	/* busy TSS | present bit */
-	tssd.type = (1<<7) | 0b1001;
+	tssd.type = (1 << 7) | 0b1001;
 	tssd.base3 = ((u64)&tsspa >> 24) & 0xff;
 	tssd.base4 = ((u64)&tsspa >> 32) & 0xffffffff;
 
 
 	/* Note: the TSS is  not initialized yet! Should be when needed */
 
-	ltr (0x20);
+	ltr(0x20);
 #endif
 	return;
 }
 
 
 
-void
-init_cpu ()
+void init_cpu()
 {
 	/* Switch to 64 bit GDTR */
-	lgdtr (gdt, 6 * GDT_NENTRIES - 1);
+	lgdtr(gdt, 6 * GDT_NENTRIES - 1);
 
-	tss_start ();
+	tss_start();
 
 	return;
 }

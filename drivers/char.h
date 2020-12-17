@@ -15,21 +15,21 @@
 
 
 struct cdevsw {
-	 void (*open)();
-	 void (*close)();
-	 void (*read)();
-	 void (*write)();
-	 void (*ioctl)();
-	 void (*mmap)();
-	 void (*segmap)();
-	 void (*poll)();
-	 void (*halt)();
+	void (*open)();
+	void (*close)();
+	void (*read)();
+	void (*write)();
+	void (*ioctl)();
+	void (*mmap)();
+	void (*segmap)();
+	void (*poll)();
+	void (*halt)();
 };
 
 
 
-void cdev_register_dev (struct cdevsw *cdev, u32 major);
-void init_cdev (void);
+void cdev_register_dev(struct cdevsw *cdev, u32 major);
+void init_cdev(void);
 
 
 #endif /* DRIVERS_CHAR_H */

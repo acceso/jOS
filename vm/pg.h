@@ -17,22 +17,22 @@
 
 
 static inline void
-cr3_write (u64 val)
+cr3_write(u64 val)
 {
-	asm volatile (
+	asm volatile(
 		"mov %0,%%cr3"
 		: : "r" (val));
 }
 
 
 
-void *virt2phys (const void *addr);
-u8 map_one_page (void *phys, void *vaddr);
+void *virt2phys(const void *addr);
+u8 map_one_page(void *phys, void *vaddr);
 
 
 
 
-void load_init_page_tables (struct task *task);
+void load_init_page_tables(struct task *task);
 
 
 

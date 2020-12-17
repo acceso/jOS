@@ -9,9 +9,9 @@
 
 
 
-struct inode *iget (struct super *sb, size_t inum);
-void iput (struct inode *inode);
-size_t bmap (struct inode *inode, off_t offset);
+struct inode *iget(struct super *sb, size_t inum);
+void iput(struct inode *inode);
+size_t bmap(struct inode *inode, off_t offset);
 
 
 

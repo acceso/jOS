@@ -32,36 +32,35 @@ static struct {
  * Bochs adapts the keycodes to spanish?? Should fix this...
  */
 char kb_en[256] = "\0\0"
-	"1234567890-=\b"
-	"\tqwertyuiop[]\n"
-	"\0asdfghjkl;'`"
-	"\0\\zxcvbnm,./\0"
-	"\0\0 \0\0\0\0\0"
-	"\0\0\0\0\0\0\0\0"
-	"\0\0\0-\0\0\0+"
-	"\0\0\0\0\0\0\0<";
+		"1234567890-=\b"
+		"\tqwertyuiop[]\n"
+		"\0asdfghjkl;'`"
+		"\0\\zxcvbnm,./\0"
+		"\0\0 \0\0\0\0\0"
+		"\0\0\0\0\0\0\0\0"
+		"\0\0\0-\0\0\0+"
+		"\0\0\0\0\0\0\0<";
 char kb_en_caps[256] = "\0\0"
-	"!@#$%^&*()_+\b"
-	"\tQWERTYUIOP{}\n"
-	"\0ASDFGHJKL:\"~"
-	"\0|ZXCVBNM<>?\0"
-	"\0\0 \0\0\0\0\0"
-	"\0\0\0\0\0\0\0\0"
-	"\0\0\0-\0\0\0+"
-	"\0\0\0\0\0\0\0>";
+		"!@#$%^&*()_+\b"
+		"\tQWERTYUIOP{}\n"
+		"\0ASDFGHJKL:\"~"
+		"\0|ZXCVBNM<>?\0"
+		"\0\0 \0\0\0\0\0"
+		"\0\0\0\0\0\0\0\0"
+		"\0\0\0-\0\0\0+"
+		"\0\0\0\0\0\0\0>";
 
 
 
-__isr__
-do_keyboard (struct intr_frame r)
+__isr__ do_keyboard(struct intr_frame r)
 {
-	intr_enter ();
+	intr_enter();
 
-	u8 scancode = inb (0x60);
+	u8 scancode = inb(0x60);
 
 
 #if 0 /* used for debugging */
-	kprintf ("->%d<-\n", scancode);
+	kprintf("->%d<-\n", scancode);
 #else
 
 	switch (scancode) {
@@ -73,10 +72,9 @@ do_keyboard (struct intr_frame r)
 	case 0xb6: /* Right shift */
 		keyb.shift = 0;
 		break;
-	default:
-		{
+	default: {
 		char c;
-		
+
 		/* 0b1000_0000 means key release (break) */
 		if (scancode & 0x80)
 			break;
@@ -89,31 +87,29 @@ do_keyboard (struct intr_frame r)
 		switch (c) {
 		case '\b':
 			kbdbptr--;
-			kprintf ("%c", c);
+			kprintf("%c", c);
 			break;
 		default:
 			if (kbdbptr - kbdb < KBDB_LEN)
 				*kbdbptr++ = c;
-			kprintf ("%c", c);
+			kprintf("%c", c);
 		}
-
-		}
+	}
 	}
 #endif
 
-	lapic_eoi ();
-	intr_exit ();
+	lapic_eoi();
+	intr_exit();
 }
 
 
 
 
-void
-init_keyboard (void)
+void init_keyboard(void)
 {
 	kbdbptr = kbdb;
 
-	intr_install_handler (1, do_keyboard);
+	intr_install_handler(1, do_keyboard);
 
 
 	return;

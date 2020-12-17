@@ -15,8 +15,7 @@ static struct file file_table[NFILES];
 
 
 
-struct file *
-file_get (const char *path)
+struct file *file_get(const char *path)
 {
 	u8 i = 0;
 
@@ -25,7 +24,7 @@ file_get (const char *path)
 			break;
 	}
 
-	file_table[i].inode = namei (path);
+	file_table[i].inode = namei(path);
 	if (file_table[i].inode == NULL)
 		return NULL;
 
@@ -36,8 +35,7 @@ file_get (const char *path)
 
 
 
-void
-init_files (void)
+void init_files(void)
 {
 	u8 i;
 

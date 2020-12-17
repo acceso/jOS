@@ -9,11 +9,11 @@
 
 
 
-/* Steps to add a syscall: 
+/* Steps to add a syscall:
  * - check the number is free.
  * - add: #define __NR_num N, to this file.
  * - include this file.
- * - call: syscall_register (__NR_num, your_handler);
+ * - call: syscall_register(__NR_num, your_handler);
  * your_handler can be defined as you want but max 6 parameters are accepted
  * and it must return a signed integer.
  * */
@@ -47,12 +47,12 @@
 
 
 
-extern void (*syscall_dispatch) (void);
+extern void (*syscall_dispatch)(void);
 
-s8 syscall_register (u16 num, void *handler);
+s8 syscall_register(u16 num, void *handler);
 
 
-void init_syscall (void);
+void init_syscall(void);
 
 
 #endif /* VM_SYSCALL_H */

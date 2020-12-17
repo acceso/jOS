@@ -6,10 +6,10 @@
 
 
 
-void *kma_alloc (size_t size);
-void kma_free (void *addr);
+void *kma_alloc(size_t size);
+void kma_free(void *addr);
 
-void kma_init (void);
+void kma_init(void);
 
 
 

@@ -4,7 +4,7 @@
 
 
 
-void init_keyboard (void);
+void init_keyboard(void);
 
 
 

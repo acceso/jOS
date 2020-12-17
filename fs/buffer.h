@@ -19,8 +19,8 @@ struct bhead {
 
 
 
-struct bhead *getblk (struct super *sb, size_t block);
-struct bhead *bread (struct super *sb, size_t block);
+struct bhead *getblk(struct super *sb, size_t block);
+struct bhead *bread(struct super *sb, size_t block);
 
 
 #endif /* FS_BUFFER_H */

@@ -9,13 +9,13 @@
 
 
 
-void build_page_frames (void);
+void build_page_frames(void);
 
-void *get_pages (u32 order);
-void *get_one_page (void);
+void *get_pages(u32 order);
+void *get_one_page(void);
 
-void free_page (u64 *addr);
-void free_page_pfn (u64 pfn);
+void free_page(u64 *addr);
+void free_page_pfn(u64 pfn);
 
 
 #endif /* MM_PHYS_H */

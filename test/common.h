@@ -10,38 +10,34 @@
 
 
 
-int vprintf (const char *, va_list);
+int vprintf(const char *, va_list);
 
-void
-kprintf (const char *fmt, va_list argp)
+void kprintf(const char *fmt, va_list argp)
 {
 	vprintf(fmt, argp);
 }
 
 
 
-void
-oom (const char *str)
+void oom(const char *str)
 {
-	printf ("%s\n", str);
-	exit (0);
+	printf("%s\n", str);
+	exit(0);
 }
 
 
 
-void
-kputs (const char *s)
+void kputs(const char *s)
 {
-	puts (s);
+	puts(s);
 }
 
 
 
-void
-kpanic (char *s)
+void kpanic(char *s)
 {
-	puts (s);
-	exit (0);
+	puts(s);
+	exit(0);
 }
 
 

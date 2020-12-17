@@ -26,9 +26,9 @@ struct elf_header {
 	u16 e_phnum;	/* Number of entries in the program header table */
 	u16 e_shentsize;/* Size of one entry in the section header table */
 	u16 e_shnum;	/* Number of entries in the section header table */
-	u16 e_shstrndx; /* Idx in the section header table 
+	u16 e_shstrndx; /* Idx in the section header table
 			 * associated with the section name string table */
-} __attribute__ ((packed));
+} __attribute__((packed));
 
 
 /* elf_header->e_ident fields */
@@ -70,7 +70,7 @@ struct elf_ph_entry {
 	u64 ph_filesz;	/* Size of segment in file */
 	u64 ph_memsz;	/* Size of segment in memory */
 	u64 ph_align;	/* Alignment of segment */
-} __attribute__ ((packed));
+} __attribute__((packed));
 
 
 /* elf_ph_entry->ph_type */
@@ -89,18 +89,16 @@ struct elf_ph_entry {
 
 
 
-static u16
-elf_get_machine (void)
+static u16 elf_get_machine(void)
 {
 	return EM_X86_64;
 }
 
 
 
-static s8
-elf_check_header (struct elf_header *elfh, u16 e_type)
+static s8 elf_check_header(struct elf_header *elfh, u16 e_type)
 {
-	if (strncmp ((char *)elfh, "\x7f" "ELF", 4) != 0)
+	if (strncmp((char *)elfh, "\x7f" "ELF", 4) != 0)
 		return -1;
 
 	if (elfh->e_ident[EI_CLASS] != ELFCLASS64)
@@ -119,7 +117,7 @@ elf_check_header (struct elf_header *elfh, u16 e_type)
 	if (elfh->e_type != e_type)
 		return -1;
 
-	if (elfh->e_machine != elf_get_machine ())
+	if (elfh->e_machine != elf_get_machine())
 		return -1;
 
 	return 0;
@@ -127,13 +125,12 @@ elf_check_header (struct elf_header *elfh, u16 e_type)
 
 
 
-static s8
-elf_load_section (s32 fd, struct elf_ph_entry *ph)
+static s8 elf_load_section(s32 fd, struct elf_ph_entry *ph)
 {
 	if (ph->ph_vaddr % ph->ph_align > 0)
 		return -1;
 
-	mmap ((void *)ph->ph_vaddr, ph->ph_memsz, PROT_EXEC, 
+	mmap((void *)ph->ph_vaddr, ph->ph_memsz, PROT_EXEC,
 		MAP_SHARED | MAP_FIXED, fd, ph->ph_offset);
 
 	return 0;
@@ -142,8 +139,7 @@ elf_load_section (s32 fd, struct elf_ph_entry *ph)
 
 
 /* As ELF files will be mapped on lower half, a signed is big enough. */
-s64
-elf_map (const char *path)
+s64 elf_map(const char *path)
 {
 	s32 fd;
 	struct elf_header elfh;
@@ -152,15 +148,15 @@ elf_map (const char *path)
 	u64 offset;
 	u16 cur;
 
-	fd = open (path, 0, 0);
+	fd = open(path, 0, 0);
 	if (fd == -1)
 		return -1;
 
-	bytes = read (fd, &elfh, sizeof (struct elf_header));
-	if (bytes < sizeof (struct elf_header))
+	bytes = read(fd, &elfh, sizeof(struct elf_header));
+	if (bytes < sizeof(struct elf_header))
 		return -1;
 
-	if (elf_check_header (&elfh, ET_EXEC) == -1)
+	if (elf_check_header(&elfh, ET_EXEC) == -1)
 		return -1;
 
 	if (elfh.e_phoff == 0 || elfh.e_phnum == 0)
@@ -170,25 +166,23 @@ elf_map (const char *path)
 	cur = elfh.e_phnum;
 
 	do {
-		lseek (fd, offset, SEEK_SET);
+		lseek(fd, offset, SEEK_SET);
 
-		bytes = read (fd, &elf_ph, sizeof (struct elf_ph_entry));
-		if (bytes < sizeof (struct elf_ph_entry))
+		bytes = read(fd, &elf_ph, sizeof(struct elf_ph_entry));
+		if (bytes < sizeof(struct elf_ph_entry))
 			return -1;
 
 
 		switch (elf_ph.ph_type) {
 		case PT_NULL:
 			break;
-		case PT_LOAD:
-			{
+		case PT_LOAD: {
 			s8 ret;
 
-			ret = elf_load_section (fd, &elf_ph);
+			ret = elf_load_section(fd, &elf_ph);
 			if (ret == -1)
 				return -1;
-			}
-			break;
+		} break;
 		case PT_DYNAMIC:
 			break;
 		case PT_INTERP:
@@ -227,16 +221,6 @@ elf_map (const char *path)
 
 
 
-
-
-
-
-
-
-
-
-
-
 /* These will be useful in the future: */
 
 
@@ -264,9 +248,9 @@ struct elf_sect_header {
 	u32 sh_link;	/* Associated section (depends on the type) */
 	u32 sh_info;	/* Extra info (also depends on the type) */
 	u64 sh_addralign; /* Required alignment */
-	u64 sh_entsize;	/* Size of each entry for sections with fixed-size 
+	u64 sh_entsize;	/* Size of each entry for sections with fixed-size
 			 * entries */
-} __attribute__ ((packed));
+} __attribute__((packed));
 
 
 #define SHT_NULL	0 /* Inactive. No section associated. */
@@ -286,7 +270,7 @@ struct elf_sect_header {
 #define SHT_LOPROC	0x70000000 /* Values in this range are reserved */
 #define SHT_HIPROC	0x7fffffff /* for processor-specific semantics. */
 
-#define SHF_WRITE	0x1 /* Section has data that should be writable 
+#define SHF_WRITE	0x1 /* Section has data that should be writable
 			     * during execution */
 #define SHF_ALLOC	0x2 /* Section occupies memory */
 #define SHF_EXECINSTR	0x4 /* Section contains instructions */
@@ -312,7 +296,7 @@ struct elf_sym {
 	u16 st_shndx;	/* Section table index or SHN_UNDEF */
 	u64 st_value;	/* Value of the symbol. Absolute or relocatable. */
 	u64 st_size;	/* Size of object or zero. */
-} __attribute__ ((packed));
+} __attribute__((packed));
 
 
 #define STB_LOCAL	0	/* Not visible outside object file */

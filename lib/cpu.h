@@ -28,10 +28,9 @@ union _cpuregs32 {
 
 
 /* http://www.sandpile.org/ia32/cpuid.htm */
-static inline void
-cpuid (union _cpuregs32 *r)
+static inline void cpuid(union _cpuregs32 *r)
 {
-	asm volatile ("cpuid\n\t"
+	asm volatile("cpuid\n\t"
 		:"=a" (r->eax), "=b" (r->ebx),
 		 "=d" (r->edx), "=c" (r->ecx)
 		:"0" (r->eax));
@@ -40,12 +39,11 @@ cpuid (union _cpuregs32 *r)
 
 
 
-static inline u64
-msr_read (u32 msr)
+static inline u64 msr_read(u32 msr)
 {
 	u32 l, h;
 
-	asm volatile (
+	asm volatile(
 		"rdmsr"
 		: "=a" (l), "=d" (h)
 		: "c" (msr));
@@ -56,10 +54,9 @@ msr_read (u32 msr)
 
 
 
-static inline void
-msr_write (u32 msr, u64 data)
+static inline void msr_write(u32 msr, u64 data)
 {
-	asm volatile (
+	asm volatile(
 		"wrmsr"
 		:
 		: "c" (msr), "a"(data & 0xffffffff), "d" (data >> 32)
@@ -67,10 +64,9 @@ msr_write (u32 msr, u64 data)
 }
 
 
-static inline void
-iowait (void)
+static inline void iowait(void)
 {
-	asm volatile (
+	asm volatile(
 		"jmp 1f\n\t"
 		"1:\n\t"
 		"jmp 1f\n\t"
@@ -78,10 +74,9 @@ iowait (void)
 		);
 }
 
-static inline void
-yield (void)
+static inline void yield(void)
 {
-	asm volatile ("nop\n\t");
+	asm volatile("nop\n\t");
 }
 
 

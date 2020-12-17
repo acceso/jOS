@@ -11,14 +11,14 @@
 #define PAGE_OFFSET	21
 
 
-#define PAGE_ALIGNED(_a) (((u64)(_a) & PAGE_ALIGN) == (u64)(_a))
+#define PAGE_ALIGNED(_a) (((u64)(_a)&PAGE_ALIGN) == (u64)(_a))
 
 
 
-u64 get_mm_range (void **addr, u16 n);
+u64 get_mm_range(void **addr, u16 n);
 
-void oom (const char *str);
-void init_memory (void);
+void oom(const char *str);
+void init_memory(void);
 
 
 

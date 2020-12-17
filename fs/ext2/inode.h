@@ -5,8 +5,8 @@
 
 
 
-struct inode *ext2_inode_read (struct super *sb, u64 inum);
-void ext2_inode_write (struct super *sb, struct inode *inode);
+struct inode *ext2_inode_read(struct super *sb, u64 inum);
+void ext2_inode_write(struct super *sb, struct inode *inode);
 
 
 

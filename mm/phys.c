@@ -12,7 +12,7 @@
 
 
 /* These have to be used by taking the address, see:
- * http://sourceware.org/binutils/docs/ld/Source-Code-Reference.html 
+ * http://sourceware.org/binutils/docs/ld/Source-Code-Reference.html
  * Remember: sok is physical but eok is virtual memory! */
 extern u64 sok, eok;
 
@@ -32,8 +32,7 @@ static struct {
 
 
 /* Returns the address of the start of a given page frame number. */
-static void *
-pfn_to_addr (u64 pfn)
+static void *pfn_to_addr(u64 pfn)
 {
 	return (void *)(pfn * PAGE_SIZE);
 }
@@ -41,8 +40,7 @@ pfn_to_addr (u64 pfn)
 
 
 /* Returns the page frame number corresponding to a given address. */
-static inline u64
-addr_to_pfn (void *addr)
+static inline u64 addr_to_pfn(void *addr)
 {
 	return (u64)addr >> PAGE_OFFSET;
 }
@@ -52,10 +50,9 @@ addr_to_pfn (void *addr)
 
 
 /* Marks as free the page that contains addr */
-static void
-pf_mark_free_addr (void *addr)
+static void pf_mark_free_addr(void *addr)
 {
-	u64 idx = addr_to_pfn (addr) >> 6;
+	u64 idx = addr_to_pfn(addr) >> 6;
 
 	if (idx > MEM_BITMAP_MAX)
 		return;
@@ -63,13 +60,12 @@ pf_mark_free_addr (void *addr)
 	/* To understand this code:
 	 * idx = page_frame_number / 64;
 	 * bit = page_frame_number % 64; */
-	bitclear (&zone.memmap[idx], (u64)addr_to_pfn (addr) & 0b111111);
+	bitclear(&zone.memmap[idx], (u64)addr_to_pfn(addr) & 0b111111);
 }
 
 
 
-static s8 
-mem_usable (void *addr)
+static s8 mem_usable(void *addr)
 {
 	/* Within kernel code */
 	if (addr + PAGE_SIZE >= (void *)&sok &&
@@ -89,8 +85,7 @@ mem_usable (void *addr)
 /* Gets the ith entry from the memory map,
  * and marks the page frames contained within (if any) as available.
  * Returns the number of pages made available. */
-static s64
-mm_make_range_usable (void *addr, u64 len)
+static s64 mm_make_range_usable(void *addr, u64 len)
 {
 	void *p;
 	u64 npages = 0;
@@ -100,18 +95,18 @@ mm_make_range_usable (void *addr, u64 len)
 	if (len < PAGE_SIZE)
 		return 0;
 
-	p = align_to (addr, PAGE_SIZE);
+	p = align_to(addr, PAGE_SIZE);
 
 	do {
 		/* No more pages */
 		if (p + PAGE_SIZE > addr + len)
-			return npages; 
+			return npages;
 
-		if (mem_usable (p)) {
-			pf_mark_free_addr (p);
+		if (mem_usable(p)) {
+			pf_mark_free_addr(p);
 			npages++;
 		}
-	
+
 		p += PAGE_SIZE;
 	} while (p <= addr + len);
 
@@ -121,8 +116,7 @@ mm_make_range_usable (void *addr, u64 len)
 
 
 
-void
-build_page_frames (void)
+void build_page_frames(void)
 {
 	u8 i;
 	void *addr = 0;
@@ -137,15 +131,15 @@ build_page_frames (void)
 	i = 0;
 
 	do {
-		len = get_mm_range (&addr, i++);
+		len = get_mm_range(&addr, i++);
 		if (len == 0)
 			break;
 
-		zone.npages += mm_make_range_usable (addr, len);
+		zone.npages += mm_make_range_usable(addr, len);
 	} while (1);
 
 
-	kprintf ("  %d free page frames\n", zone.npages);
+	kprintf("  %d free page frames\n", zone.npages);
 
 }
 
@@ -160,8 +154,7 @@ build_page_frames (void)
 
 
 
-static s32
-find_free_pages (u32 order)
+static s32 find_free_pages(u32 order)
 {
 	u64 current_word;
 	u64 i = 0;
@@ -179,12 +172,12 @@ find_free_pages (u32 order)
 			if ((current_word & 0x1) == 0)
 				break;
 
-			bit++; 
+			bit++;
 			current_word >>= 1;
 		} while (bit < MACHINEBITS);
 
 		if (bit < MACHINEBITS) {
-			bitset (&zone.memmap[i], bit);
+			bitset(&zone.memmap[i], bit);
 			return bit;
 		}
 
@@ -199,48 +192,44 @@ find_free_pages (u32 order)
 
 
 
-void *
-get_pages (u32 order)
+void *get_pages(u32 order)
 {
 	s32 pfn;
 
 	/* TODO: just one page for now */
 	if (order > 0)
-		kpanic ("Not yet implemented!\n");
+		kpanic("Not yet implemented!\n");
 
-	pfn = find_free_pages (order);
+	pfn = find_free_pages(order);
 	if (pfn < 0)
-		oom (__func__);
+		oom(__func__);
 
-	return (void *)__va (pfn_to_addr (pfn));
+	return (void *)__va(pfn_to_addr(pfn));
 }
 
 
 
-void *
-get_one_page (void)
+void *get_one_page(void)
 {
-	return get_pages (0);
+	return get_pages(0);
 }
 
 
 
-void
-free_page (u64 *addr)
+void free_page(u64 *addr)
 {
 	/* Not needed, pf_mark_free_addr can be called twice
-	if (pfn_isfree (addr_to_pfn (addr)))
+	if (pfn_isfree(addr_to_pfn(addr)))
 		return; */
 
-	pf_mark_free_addr (addr);
+	pf_mark_free_addr(addr);
 }
 
 
 
-void
-free_page_pfn (u64 pfn)
+void free_page_pfn(u64 pfn)
 {
-	pf_mark_free_addr ((u64 *)pfn_to_addr (pfn));
+	pf_mark_free_addr((u64 *)pfn_to_addr(pfn));
 }
 
 

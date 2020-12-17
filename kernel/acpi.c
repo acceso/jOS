@@ -1,7 +1,7 @@
 
 
-/* 
- * The ACPI spec is HUGE! It'd take me too long to have 
+/*
+ * The ACPI spec is HUGE! It'd take me too long to have
  * a working implementation :(.
  * I'm just going to be adding code as necessary.
  */
@@ -45,7 +45,7 @@ struct acpi_header {
 	char creatorid[4];
 	u32 creatorrev;
 	u32 entry;
-} __attribute__ ((__packed__, __aligned__));
+} __attribute__((__packed__, __aligned__));
 
 
 
@@ -57,23 +57,23 @@ struct acpi_apic {
 			u8 cpuid;
 			u8 lapicid;
 			u32 flags0; /* Just one: enabled (bit 0) */
-		} __attribute__ ((__packed__));
+		} __attribute__((__packed__));
 		struct { /* When type 1, ioapic info */
 			u8 ioapicid;
 			u8 reserved1;
 			u32 ioapicaddr;
 			u32 gsib;
-		} __attribute__ ((__packed__));
+		} __attribute__((__packed__));
 		struct { /* When type 2, interrupt source override */
 			u8 bus;
 			u8 source;
 			u32 gsi;
 			u16 flags2;
-		} __attribute__ ((__packed__));
+		} __attribute__((__packed__));
 		/* There are types for nmi, lapic nmi, address override
 		 * and for sapic (ia64 apic) and x2apic */
 	};
-} __attribute__ ((__packed__));
+} __attribute__((__packed__));
 
 
 
@@ -83,8 +83,7 @@ extern struct _lapic lapic[];
 extern struct sys sys;
 
 /* For now, just one lapic and ioapic are supported :( */
-static void
-acpi_walk_madt (void *t, s32 l)
+static void acpi_walk_madt(void *t, s32 l)
 {
 	struct acpi_apic *a;
 	u8 i;
@@ -99,7 +98,7 @@ acpi_walk_madt (void *t, s32 l)
 	}
 
 	sys.cpu[0].lapic = &lapic[0];
-	lapic[0].base = (void *)__va (*(u32 *)(void *)(t + 0));
+	lapic[0].base = (void *)__va(*(u32 *)(void *)(t + 0));
 
 
 	if (*(u32 *)(t + 4) & 0x1)
@@ -124,7 +123,7 @@ acpi_walk_madt (void *t, s32 l)
 			break;
 		case 1: /* I/O APIC */
 			ioapic[0].id = a->ioapicid;
-			ioapic[0].base = (void *)__va (a->ioapicaddr);
+			ioapic[0].base = (void *)__va(a->ioapicaddr);
 
 			break;
 		case 2: /* Interrupt Source Override */
@@ -132,7 +131,7 @@ acpi_walk_madt (void *t, s32 l)
 				break;
 
 
-			kprintf ("  PIC Redirect %d -> %d", 
+			kprintf("  PIC Redirect %d -> %d",
 				a->source, a->gsi);
 
 			ioapic[0].pic[a->source].dest = a->gsi;
@@ -143,19 +142,19 @@ acpi_walk_madt (void *t, s32 l)
 			 * 0b11 level */
 			if (((a->flags2 >> 2) & 0x3) == 0x3) {
 				ioapic[0].pic[a->gsi].edge = 0;
-				kprintf (" (level, ");
+				kprintf(" (level, ");
 			} else
-				kprintf (" (edge, ");
+				kprintf(" (edge, ");
 
 
 			/* 0b00 bus default (active low),
-			 * 0b01 active high, 
+			 * 0b01 active high,
 			 * 0b11 active low */
 			if ((a->flags2 & 0x3) != 0x1) {
 				ioapic[0].pic[a->gsi].active_high = 0;
-				kprintf ("low)\n");
+				kprintf("low)\n");
 			} else
-				kprintf ("high)\n");
+				kprintf("high)\n");
 
 
 			/* Thats all folks :) */
@@ -173,8 +172,7 @@ acpi_walk_madt (void *t, s32 l)
 }
 
 
-static void
-acpi_walk_facs (void *t)
+static void acpi_walk_facs(void *t)
 {
 	if (*(u32 *)t != FACS_SIG)
 		return;
@@ -183,8 +181,7 @@ acpi_walk_facs (void *t)
 }
 
 
-static void
-acpi_walk_dsdt (void *t)
+static void acpi_walk_dsdt(void *t)
 {
 	if (*(u32 *)t != DSDT_SIG)
 		return;
@@ -193,18 +190,16 @@ acpi_walk_dsdt (void *t)
 }
 
 /* These are not supposed to change as the apic1 spec remains stable
- * and we're not going for newer vesions... 
+ * and we're not going for newer vesions...
  * The header is 36 bits so everything is shifted 36 bytes */
-static void
-acpi_walk_fadt (void *t)
+static void acpi_walk_fadt(void *t)
 {
-	acpi_walk_facs (t);	/* bit 36 */
-	acpi_walk_dsdt ((u8 *)t + 4); /* bit 40 */
+	acpi_walk_facs(t);	/* bit 36 */
+	acpi_walk_dsdt((u8 *)t + 4); /* bit 40 */
 }
 
 
-static void
-acpi_walk_ssdt (void *t)
+static void acpi_walk_ssdt(void *t)
 {
 }
 
@@ -217,7 +212,7 @@ struct rsdp {
 	char oemid[6];
 	u8 rev;
 	u32 rsdt;
-} __attribute__ ((__packed__));
+} __attribute__((__packed__));
 
 
 
@@ -229,8 +224,7 @@ static u64 ranges[][2] = {
 };
 
 
-void *
-acpi_search_table (u64 signature)
+void *acpi_search_table(u64 signature)
 {
 	u8 siglen = 64;
 	u8 i = 0;
@@ -246,8 +240,8 @@ acpi_search_table (u64 signature)
 		if (ranges[i] == 0)
 			break;
 
-		for (p = (u64 *)__va (ranges[i][0]);
-			p < (u64 *)__va (ranges[i][1]); p += 2) {
+		for (p = (u64 *)__va(ranges[i][0]);
+			p < (u64 *)__va(ranges[i][1]); p += 2) {
 
 			if (siglen == 64 && *p == signature)
 				return (void *)p;
@@ -257,7 +251,7 @@ acpi_search_table (u64 signature)
 
 		}
 
-	} while (__va (ranges[++i][0]) != 0);
+	} while (__va(ranges[++i][0]) != 0);
 
 
 	return NULL;
@@ -266,71 +260,70 @@ acpi_search_table (u64 signature)
 
 
 
-void
-init_acpi (void)
+void init_acpi(void)
 {
 	struct rsdp *rsdpp = NULL;
 	struct acpi_header *h;
 	char oem[7];
 	u32 *p;
 
-	kprintf ("Parsing ACPI tables:\n");
+	kprintf("Parsing ACPI tables:\n");
 
 
-	rsdpp = (struct rsdp *)acpi_search_table (RSDP_SIG);
+	rsdpp = (struct rsdp *)acpi_search_table(RSDP_SIG);
 	if (rsdpp == NULL || rsdpp->rsdt == 0)
-		kpanic ("No valid ACPI tables.");
+		kpanic("No valid ACPI tables.");
 
 
-	if (acpi_csum (rsdpp, 20) != 0)
-		kpanic ("Wrong checksum in rsdp\n");
+	if (acpi_csum(rsdpp, 20) != 0)
+		kpanic("Wrong checksum in rsdp\n");
 
 
 	/* Is not null terminated.. */
-	strncpy (oem, rsdpp->oemid, 6);
+	strncpy(oem, rsdpp->oemid, 6);
 	oem[6] = '\0';
 
-	kprintf ("  ACPI table v%d by %s\n", rsdpp->rev, oem);
+	kprintf("  ACPI table v%d by %s\n", rsdpp->rev, oem);
 
 
 
-	h = (struct acpi_header *)__va (rsdpp->rsdt);
+	h = (struct acpi_header *)__va(rsdpp->rsdt);
 	if (h == NULL || h->sig != RSDT_SIG)
-		kpanic ("Invalid RSDT in ACPI table\n");
+		kpanic("Invalid RSDT in ACPI table\n");
 
-	if (acpi_csum (h, h->l) != 0)
-		kpanic ("Wrong checksum in rsdt\n");
+	if (acpi_csum(h, h->l) != 0)
+		kpanic("Wrong checksum in rsdt\n");
 
 
 	for (p = (u32 *)&h->entry; p < (u32 *)((u64)h + h->l); p++) {
 
-		struct acpi_header *h2 = (struct acpi_header *)__va (*p);
+		struct acpi_header *h2 = (struct acpi_header *)__va(*p);
 
 
-		if (acpi_csum (h2, h2->l) != 0)
+		if (acpi_csum(h2, h2->l) != 0)
 			continue;
 
-		/*kprintf ("%s\n", &h2->sig);*/
+		/*kprintf("%s\n", &h2->sig);*/
 
 		switch (h2->sig) {
 		case APIC_SIG:
 			/* This is the mother of the lamb!!
-			 * A bit confusing because the signature (APIC) 
+			 * A bit confusing because the signature (APIC)
 			 * is different from the table name! (MADT) */
-			acpi_walk_madt (&h2->entry,
-				h2->l - sizeof (struct acpi_header) + 4
+			acpi_walk_madt(&h2->entry,
+				h2->l - sizeof(struct acpi_header) + 4
 				);
 			break;
 		case FADT_SIG:
-			acpi_walk_fadt (&h2->entry);
+			acpi_walk_fadt(&h2->entry);
 			break;
 		case SSDT_SIG:
-			acpi_walk_ssdt (&h2->entry);
+			acpi_walk_ssdt(&h2->entry);
 			break;
 		case HPET_SIG:
 			break;
 		default:
-			/*kprintf ("------>%s\n", &h2->sig);*/
+			/*kprintf("------>%s\n", &h2->sig);*/
 			break;
 		}
 	}

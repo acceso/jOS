@@ -21,7 +21,7 @@
 	(_type *)((char *)(_ptr) - __builtin_offsetof (_type, _member))
 
 
-void *align_to (void *a, u32 p);
+void *align_to(void *a, u32 p);
 
 
 

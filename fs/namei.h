@@ -4,7 +4,7 @@
 
 
 
-struct inode *namei (const char *path);
+struct inode *namei(const char *path);
 
 
 

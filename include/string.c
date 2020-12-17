@@ -8,8 +8,7 @@
 
 
 
-s8
-strcmp (const char *s1, const char *s2)
+s8 strcmp(const char *s1, const char *s2)
 {
 	while (*s1 != '\0' && *s1 == *s2)
 		s1++, s2++;
@@ -22,8 +21,7 @@ strcmp (const char *s1, const char *s2)
 
 
 
-s8
-strncmp (const char *s1, const char *s2, size_t l)
+s8 strncmp(const char *s1, const char *s2, size_t l)
 {
 	while (--l > 0 && *s1 == *s2)
 		s1++, s2++;
@@ -36,8 +34,7 @@ strncmp (const char *s1, const char *s2, size_t l)
 
 
 
-void
-strcpy (char *dst, char *src)
+void strcpy(char *dst, char *src)
 {
 	while (*src)
 		*dst++ = *src++;
@@ -45,8 +42,7 @@ strcpy (char *dst, char *src)
 
 
 
-void
-strncpy (char *dst, char *src, s64 l)
+void strncpy(char *dst, char *src, s64 l)
 {
 	while (*src) {
 		if (--l < 0)
@@ -57,8 +53,7 @@ strncpy (char *dst, char *src, s64 l)
 
 
 
-void
-memcpy (void *dst, void *src, size_t l)
+void memcpy(void *dst, void *src, size_t l)
 {
 	/* Could be made faster... */
 	while (l--)
@@ -67,8 +62,7 @@ memcpy (void *dst, void *src, size_t l)
 
 
 
-size_t
-strlen (const char *s)
+size_t strlen(const char *s)
 {
 	u16 i = 0;
 
@@ -80,24 +74,22 @@ strlen (const char *s)
 
 
 
-char *
-strchr (const char *s, int c)
+char *strchr(const char *s, int c)
 {
 	while (*s != '\0' && *s != (char)c)
 		s++;
 
-	return (*s == c) ? (char *) s : NULL;
+	return (*s == c) ? (char *)s : NULL;
 }
 
 
 
-size_t
-strcspn (const char *s1, const char *s2)
+size_t strcspn(const char *s1, const char *s2)
 {
 	const char *sc1;
 
 	for (sc1 = s1; *sc1 != '\0'; sc1++)
-		if (strchr (s2, *sc1) != NULL)
+		if (strchr(s2, *sc1) != NULL)
 			return sc1 - s1;
 
 	return sc1 - s1;
@@ -105,13 +97,12 @@ strcspn (const char *s1, const char *s2)
 
 
 
-size_t
-strspn (const char *s1, const char *s2)
+size_t strspn(const char *s1, const char *s2)
 {
 	const char *sc1;
 
 	for (sc1 = s1; *sc1 != '\0'; sc1++)
-		if (strchr (s2, *sc1) == NULL)
+		if (strchr(s2, *sc1) == NULL)
 			return sc1 - s1;
 
 	return sc1 - s1;
@@ -119,8 +110,7 @@ strspn (const char *s1, const char *s2)
 
 
 
-void *
-memset (void *s, u8 c, size_t n)
+void *memset(void *s, u8 c, size_t n)
 {
 	u8 *p = s;
 
@@ -132,8 +122,7 @@ memset (void *s, u8 c, size_t n)
 
 
 
-s16
-strlen2sep (const char *s, const char sep)
+s16 strlen2sep(const char *s, const char sep)
 {
 	u8 i = 0;
 	const char *str = s;

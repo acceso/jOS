@@ -5,12 +5,11 @@
 
 
 
-u64
-atoi (const char *s)
+u64 atoi(const char *s)
 {
 	u64 n = 0;
 
-	while (isdigit (*s++)) {
+	while (isdigit(*s++)) {
 		n *= 10;
 		n += *(s - 1) - '0';
 	}

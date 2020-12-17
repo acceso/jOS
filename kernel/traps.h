@@ -15,7 +15,7 @@
 
 
 #define __isr__		\
-	__attribute__ ((aligned (16))) static void
+	__attribute__((aligned(16))) static void
 
 
 
@@ -48,11 +48,11 @@
 
 
 /* The "nop"s are to skip the function prologue, see traps.c.
- * pushq $0 is a fake error code. 
- * The last "sub" is needed to make the function parameter 
+ * pushq $0 is a fake error code.
+ * The last "sub" is needed to make the function parameter
  * (intr_frame) work. */
 #define intr_enter()			\
-	asm volatile (			\
+	asm volatile(			\
 		"nop; nop; nop; nop;"	\
 		"nop; nop; nop; nop;"	\
 		"nop; nop; nop; nop;"	\
@@ -64,7 +64,7 @@
 		)
 
 #define intr_err_enter()		\
-	asm volatile (			\
+	asm volatile(			\
 		"nop; nop; nop; nop;"	\
 		"nop; nop; nop; nop;"	\
 		"nop; nop; nop; nop;"	\
@@ -78,7 +78,7 @@
 
 /* The addqs undo the previous subqs */
 #define intr_exit(_n)			\
-	asm volatile (			\
+	asm volatile(			\
 		"addq $16, %rsp\n\t"	\
 		popaq()			\
 		"addq $8, %rsp\n\t" 	\
@@ -87,7 +87,7 @@
 
 
 #define intr_err_exit(_n)		\
-	asm volatile (			\
+	asm volatile(			\
 		"addq $16, %rsp\n\t"	\
 		popaq()			\
 		"iretq\n\t"		\
@@ -116,35 +116,34 @@ struct intr_frame {
 	u64 rsp;
 	u8 ss;
 	u8 pad2; u32 pad3;
-} __attribute__ ((__packed__));
+} __attribute__((__packed__));
 
 
 
-static inline void
-stack_frame_dump (struct intr_frame *r)
+static inline void stack_frame_dump(struct intr_frame *r)
 {
-	kprintf ("r11    (%llp)\n", r->r11);
-	kprintf ("r10    (%llp)\n", r->r10);
-	kprintf ("r9     (%llp)\n", r->r9);
-	kprintf ("r8     (%llp)\n", r->r8);
-	kprintf ("rdi    (%llp)\n", r->rdi);
-	kprintf ("rsi    (%llp)\n", r->rsi);
-	kprintf ("rdx    (%llp)\n", r->rdx);
-	kprintf ("rcx    (%llp)\n", r->rcx);
-	kprintf ("rax    (%llp)\n", r->rax);
-	kprintf ("rip    (%llp)\n", r->rip);
-	kprintf ("cs     (0x%x)\n", r->cs);
-	kprintf ("rflags (%llp)\n", r->rflags);
-	kprintf ("rsp    (%llp)\n", r->rsp);
-	kprintf ("ss     (0x%x)\n", r->ss);
-	kprintf ("\n\n");
+	kprintf("r11    (%llp)\n", r->r11);
+	kprintf("r10    (%llp)\n", r->r10);
+	kprintf("r9     (%llp)\n", r->r9);
+	kprintf("r8     (%llp)\n", r->r8);
+	kprintf("rdi    (%llp)\n", r->rdi);
+	kprintf("rsi    (%llp)\n", r->rsi);
+	kprintf("rdx    (%llp)\n", r->rdx);
+	kprintf("rcx    (%llp)\n", r->rcx);
+	kprintf("rax    (%llp)\n", r->rax);
+	kprintf("rip    (%llp)\n", r->rip);
+	kprintf("cs     (0x%x)\n", r->cs);
+	kprintf("rflags (%llp)\n", r->rflags);
+	kprintf("rsp    (%llp)\n", r->rsp);
+	kprintf("ss     (0x%x)\n", r->ss);
+	kprintf("\n\n");
 }
 
 
 
 
-void intr_install_handler (u8 num, void *addr);
-void init_exceptions (void);
+void intr_install_handler(u8 num, void *addr);
+void init_exceptions(void);
 
 
 

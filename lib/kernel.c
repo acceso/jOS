@@ -5,16 +5,15 @@
 
 
 
-void
-kpanic (char *str)
+void kpanic(char *str)
 {
 	if (str == NULL)
 		str = "";
 
-	kputs ("\n\n");
-	kputs (str);
+	kputs("\n\n");
+	kputs(str);
 
-	kputs ("\n\n\nOoooops!!! Habemus pete!\n\n"
+	kputs("\n\n\nOoooops!!! Habemus pete!\n\n"
 		 "<Halted>\n");
 
 	asm(

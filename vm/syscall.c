@@ -14,8 +14,7 @@
 static void *syscall_table[__NR_syscall_num];
 
 
-s8
-syscall_register (u16 num, void *handler)
+s8 syscall_register(u16 num, void *handler)
 {
 	if (num >= __NR_syscall_num)
 		return -1;
@@ -28,13 +27,12 @@ syscall_register (u16 num, void *handler)
 
 
 
-void (*syscall_dispatch) (void);
+void (*syscall_dispatch)(void);
 
 
-void
-syscall_dispatch_real (void)
+void syscall_dispatch_real(void)
 {
-	asm volatile (
+	asm volatile(
 		"nop; nop; nop; nop;"
 		"nop; nop; nop; nop;"
 		"nop; nop; nop; nop;"
@@ -42,7 +40,7 @@ syscall_dispatch_real (void)
 		/* If syscall is out of bounds: */
 		"cmpq $" stringify (__NR_syscall_num) ", %rax\n\t"
 		"jae 1f\n\t"
-		/* TODO: This is a hack because it's easier to do it here. 
+		/* TODO: This is a hack because it's easier to do it here.
 		 * I'm not sure of the right solution as probably interrupts
 		 * should not be allowed until a safer place... */
 		"cmpq $" stringify (__NR_exit) ", %rax\n\t"
@@ -53,7 +51,7 @@ syscall_dispatch_real (void)
 
 	/* This code can't be merged with the previous one,
 	 * because gcc fills the registers before any asm code. */
-	asm volatile (
+	asm volatile(
 		/* syscall number << 3 because everyone is 8 bytes wide: */
 		"shl $3, %%rax\n\t"
 		"addq %0, %%rax\n\t"
@@ -62,9 +60,9 @@ syscall_dispatch_real (void)
 	);
 
 	/* This can't be merged because popaq() uses %rax instead of %%rax: */
-	asm volatile (
+	asm volatile(
 		popaq()
-		"1:\n\t" 
+		"1:\n\t"
 		"sysretq\n\t"
 	);
 
@@ -73,8 +71,7 @@ syscall_dispatch_real (void)
 
 
 
-void
-init_syscall (void)
+void init_syscall(void)
 {
 	/* I want to skip the function prologue: */
 	syscall_dispatch = syscall_dispatch_real + 16;

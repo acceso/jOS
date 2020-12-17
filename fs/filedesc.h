@@ -14,9 +14,9 @@
 #define SEEK_END	2
 
 
-off_t lseek (s32 fd, off_t offset, u8 origin);
-size_t read (s32 fd, void *buf, size_t count);
-s8 open (const char *path, u16 flags, u16 mode);
+off_t lseek(s32 fd, off_t offset, u8 origin);
+size_t read(s32 fd, void *buf, size_t count);
+s8 open(const char *path, u16 flags, u16 mode);
 
 
 #endif /* FS_FILEDESC_H */

@@ -18,7 +18,7 @@ struct tnode {
 };
 
 
-typedef s8 (*tree_cmp_fcn_t) (const struct tnode *, const struct tnode *);
+typedef s8 (*tree_cmp_fcn_t)(const struct tnode *, const struct tnode *);
 
 
 
@@ -28,15 +28,15 @@ struct tree {
 };
 
 
-struct tnode *tree_first (struct tree *tree);
-struct tnode *tree_last (struct tree *tree);
-struct tnode *tree_prev (struct tnode *node);
-struct tnode *tree_next (struct tnode *node);
+struct tnode *tree_first(struct tree *tree);
+struct tnode *tree_last(struct tree *tree);
+struct tnode *tree_prev(struct tnode *node);
+struct tnode *tree_next(struct tnode *node);
 
-u8 tree_detach (struct tree *tree, struct tnode *node);
-struct tnode *tree_lookup (const struct tree *tree, const struct tnode *key);
-u8 tree_attach (struct tree *tree, struct tnode *node);
-void tree_init (struct tree *tree, tree_cmp_fcn_t f_cmp);
+u8 tree_detach(struct tree *tree, struct tnode *node);
+struct tnode *tree_lookup(const struct tree *tree, const struct tnode *key);
+u8 tree_attach(struct tree *tree, struct tnode *node);
+void tree_init(struct tree *tree, tree_cmp_fcn_t f_cmp);
 
 
 

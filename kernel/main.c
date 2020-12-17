@@ -35,30 +35,29 @@ struct task *current;
 
 
 
-u16
-kmain (void)
+u16 kmain(void)
 {
-	cls ();
-	kputs ("Booting jOS kernel " VERSION "!\n");
+	cls();
+	kputs("Booting jOS kernel " VERSION "!\n");
 
-	init_acpi ();
-	init_exceptions ();
-	init_interrupts ();
-	init_memory ();
-	init_cpu ();
+	init_acpi();
+	init_exceptions();
+	init_interrupts();
+	init_memory();
+	init_cpu();
 
-	interrupts_enable ();
+	interrupts_enable();
 
-	init_timers ();
-	init_keyboard ();
+	init_timers();
+	init_keyboard();
 
-	init_disks ();
-	init_fs (&root);
-	init_syscall ();
+	init_disks();
+	init_fs(&root);
+	init_syscall();
 
-	current = init_task ();
+	current = init_task();
 
-	exec ("/sbin/init");
+	exec("/sbin/init");
 
 	kernel_idle();
 

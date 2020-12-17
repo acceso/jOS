@@ -17,7 +17,7 @@
 
 
 
-void kpanic (char *str);
+void kpanic(char *str);
 
 
 

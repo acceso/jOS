@@ -11,18 +11,16 @@
 #define max(a, b) ((a) > (b) ? (a) : (b))
 
 
-static inline u8
-bcd2int (u8 n)
+static inline u8 bcd2int(u8 n)
 {
 	return (n & 0xf) + (n >> 4 & 0xf) * 10;
 }
 
 
 /* Given a number x, returns y, such x = 2^y
- * It's like this python code: math.floor(math.log(x-1, 2)) + 1 
+ * It's like this python code: math.floor(math.log(x-1, 2)) + 1
  * but it works for 0 and 1 */
-static inline u64
-num2power (u64 x)
+static inline u64 num2power(u64 x)
 {
 	unsigned power = 1;
 

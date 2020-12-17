@@ -23,21 +23,21 @@ struct super;
 
 
 struct inode_ops {
-//	int (*create) (struct inode *, const char *, u8, u8);
-	struct inode *(*lookup) (struct inode *, const char *, u8);
-//	int (*link) (struct inode *, struct inode *, const char *, u8);
-//	int (*unlink) (struct inode *, const char *, u8);
-//	int (*symlink) (struct inode *, const char *, u8, const char *);
-//	int (*mkdir) (struct inode *, const char *, u8, u8);
-//	int (*rmdir) (struct inode *, const char *, u8);
-//	int (*mknod) (struct inode *, const char *, u8, u8, dev_t);
-//	int (*rename) (struct inode *, const char *, u8, struct inode *, const char *, u8);
-//	int (*readlink) (struct inode *, char *, u16);
-//	int (*follow_link) (struct inode *, struct inode *, u8, u8);
-	size_t (*bmap) (struct inode *, off_t);
-//	void (*truncate) (struct inode *);
-//	int (*permission) (struct inode *, u8);
-	struct bhead *(*block_read) (struct inode *, off_t);
+	// int (*create)(struct inode *, const char *, u8, u8);
+	struct inode *(*lookup)(struct inode *, const char *, u8);
+	// int (*link)(struct inode *, struct inode *, const char *, u8);
+	// int (*unlink)(struct inode *, const char *, u8);
+	// int (*symlink)(struct inode *, const char *, u8, const char *);
+	// int (*mkdir)(struct inode *, const char *, u8, u8);
+	// int (*rmdir)(struct inode *, const char *, u8);
+	// int (*mknod)(struct inode *, const char *, u8, u8, dev_t);
+	// int (*rename)(struct inode *, const char *, u8, struct inode *, const char *, u8);
+	// int (*readlink)(struct inode *, char *, u16);
+	// int (*follow_link)(struct inode *, struct inode *, u8, u8);
+	size_t (*bmap)(struct inode *, off_t);
+	// void (*truncate)(struct inode *);
+	// int (*permission)(struct inode *, u8);
+	struct bhead *(*block_read)(struct inode *, off_t);
 };
 
 
@@ -64,7 +64,7 @@ struct inode {
 
 
 
-#define SUPER_ERROR_FS	(1<<0)
+#define SUPER_ERROR_FS	(1 << 0)
 
 struct super {
 	dev_t dev;
@@ -81,18 +81,18 @@ struct super {
 };
 
 struct super_ops {
-	struct super *(*super_read) (dev_t *dev);
-//	void (*super_write) (struct super *sb);
-	struct inode *(*inode_read) (struct super *sb, u64 inum);
-//	void (*inode_write) (struct super *sb, struct inode *inode);
-//	void (*statfs) (struct super *, struct statfs *);
+	struct super *(*super_read)(dev_t *dev);
+	// void (*super_write)(struct super *sb);
+	struct inode *(*inode_read)(struct super *sb, u64 inum);
+	// void (*inode_write)(struct super *sb, struct inode *inode);
+	// void (*statfs)(struct super *, struct statfs *);
 };
 
 
 
 struct fs {
 	char name[10];
-	struct super *(*prepare_mount) (dev_t *dev);
+	struct super *(*prepare_mount)(dev_t *dev);
 	// read, stat, super_free, get_inode...
 };
 
@@ -105,15 +105,15 @@ struct file {
 	u16 mode;
 	u16 flags;
 	off_t pos;
-	//struct file_operations *ops;
+	// struct file_operations *ops;
 };
 
 
 
-struct inode *fs_mount (dev_t *dev, const char *dir);
-u8 fs_register (struct fs *fs);
+struct inode *fs_mount(dev_t *dev, const char *dir);
+u8 fs_register(struct fs *fs);
 
-void init_fs (dev_t *rdev);
+void init_fs(dev_t *rdev);
 
 
 

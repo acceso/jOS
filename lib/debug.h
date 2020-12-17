@@ -13,7 +13,7 @@
 
 
 #define dbg_break()				\
-	asm volatile ("xchg %bx, %bx\n")
+	asm volatile("xchg %bx, %bx\n")
 
 
 #define dbg_break_cond(cond) do {		\

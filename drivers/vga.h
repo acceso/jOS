@@ -10,7 +10,7 @@
 
 
 void cls(void);
-void vga_writechar (const u8 c);
+void vga_writechar(const u8 c);
 
 
 #endif /* DRIVERS_VGA_H */

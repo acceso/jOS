@@ -62,7 +62,7 @@ struct _channels {
 
 
 
-void init_disks (void);
+void init_disks(void);
 
 
 #endif /* DRIVERS_DISK_H */

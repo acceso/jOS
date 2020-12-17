@@ -29,14 +29,14 @@ struct bdevsw {
 
 
 
-/* I don't want to forget checking the result value. 
+/* I don't want to forget checking the result value.
  * It's needed if a device doesn't support the operation. */
-size_t bopen (dev_t *dev) WARN_UNUSED;
-size_t breadu (dev_t *dev, size_t pos, void *addr, size_t count) WARN_UNUSED;
-size_t bwrite (dev_t *dev, size_t pos, void *addr, size_t count) WARN_UNUSED;
+size_t bopen(dev_t *dev) WARN_UNUSED;
+size_t breadu(dev_t *dev, size_t pos, void *addr, size_t count) WARN_UNUSED;
+size_t bwrite(dev_t *dev, size_t pos, void *addr, size_t count) WARN_UNUSED;
 
-void bdev_register_dev (struct bdevsw *bdev, u32 major);
-void init_bdev (void);
+void bdev_register_dev(struct bdevsw *bdev, u32 major);
+void init_bdev(void);
 
 
 #endif /* DRIVERS_BLOCK_H */

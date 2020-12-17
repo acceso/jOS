@@ -5,7 +5,7 @@
 
 
 
-void init_ext2 (void);
+void init_ext2(void);
 
 
 #endif /* FS_EXT2_SUPER_H */

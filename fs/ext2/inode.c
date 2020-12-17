@@ -60,18 +60,18 @@ struct inode_ops ext2_inode_ops;
 
 
 struct ext2_bgroup_dt {
-	u32 bg_block_bitmap; /* where the block bitmap is for this group, 
+	u32 bg_block_bitmap; /* where the block bitmap is for this group,
 			      * 1 bit for each block in the group */
-	u32 bg_inode_bitmap; /* where the inode bitmap is for this group, 
+	u32 bg_inode_bitmap; /* where the inode bitmap is for this group,
 			      * 1 bit for each inode in the group */
-	u32 bg_inote_table; /* where the inode table is for this group, 
+	u32 bg_inote_table; /* where the inode table is for this group,
 			     * ext2_super.s_inodes_per_group inodes */
 	u16 bg_free_blocks_count; /* free blocks in this group */
 	u16 bg_free_inodes_count; /* free inodes in this group */
 	u16 bg_used_dirs_count; /* inodes for directories in the group */
 	u16 bg_pad;
 	char bg_reserved[12];
-} __attribute__ ((__packed__));
+} __attribute__((__packed__));
 
 
 
@@ -90,14 +90,14 @@ struct ext2_inode {
 	u32 i_blocks; /* Total number of 512-bytes reserved blocks */
 	u32 i_flags; /* chattr flags, compression, etc. */
 	u32 i_osdl; /* OS dependant value */
-	u32 i_block[15]; /* 12 direct, 1 indirect, 1 double-indirect, 
+	u32 i_block[15]; /* 12 direct, 1 indirect, 1 double-indirect,
 			  * 1 triply-indirect block */
 	u32 i_generation; /* File version */
 	u32 i_file_acl; /* Block number with extended attributes */
 	u32 i_dir_acl; /* For regular files, high 32 bits of the file size. */
 	u32 i_faddr; /* Location of file fragment. Always 0... */
 	char i_osd2[12]; /* */
-} __attribute__ ((__packed__));
+} __attribute__((__packed__));
 
 
 
@@ -113,13 +113,12 @@ struct ext2_dirent {
 	u8 name_len;
 	u8 file_type;
 	char name[EXT2_NAME_LEN];
-} __attribute__ ((__packed__));
+} __attribute__((__packed__));
 
 
 
 
-struct inode *
-ext2_inode_read (struct super *sb, u64 inum)
+struct inode *ext2_inode_read(struct super *sb, u64 inum)
 {
 	struct ext2_super_ext2 *sbpriv = sb->priv;
 	size_t bgroup;
@@ -136,36 +135,36 @@ ext2_inode_read (struct super *sb, u64 inum)
 
 	bgroup = (inum - 1) / sbpriv->inodes_per_group;
 
-	/* there are: sb->blocksize / sizeof (struct ext2_bg_desc)
+	/* there are: sb->blocksize / sizeof(struct ext2_bg_desc)
 	   block descriptor entries on each block. */
 	buf = ext2_bread (sb, sbpriv->bgroup_base
-		+ bgroup / (sb->blocksize / sizeof (struct ext2_bg_desc)));
+		+ bgroup / (sb->blocksize / sizeof(struct ext2_bg_desc)));
 
-	e2desc = (struct ext2_bg_desc *) buf->data;
+	e2desc = (struct ext2_bg_desc *)buf->data;
 
 	/* TODO: I'm believe this code should be:
-	 * e2desc += bgroup % (sb->blocksize / sizeof (struct ext2_bg_desc));
+	 * e2desc += bgroup % (sb->blocksize / sizeof(struct ext2_bg_desc));
 	 * but I'm not sure and in the small fs I use for testing it doesn't matter. */
 	e2desc += bgroup;
 
 #if 0
 	/* Format of the debugfs tool, show_super_stats */
-	kprintf ("\nGroup %u: block bitmap at %u, inode bitmap at %u, inode table at %u\n"
+	kprintf("\nGroup %u: block bitmap at %u, inode bitmap at %u, inode table at %u\n"
 		 "%u free blocks, %u free inodes, %u used directories\n",
-		 bgroup, e2desc->bg_block_bitmap, e2desc->bg_inode_bitmap, 
+		 bgroup, e2desc->bg_block_bitmap, e2desc->bg_inode_bitmap,
 		 e2desc->bg_inode_table, e2desc->bg_free_blocks_count,
 		 e2desc->bg_free_inodes_count, e2desc->bg_used_dirs_count);
 #endif
 
 	iindex = (inum - 1) % sbpriv->inodes_per_group;
 
-	buf = ext2_bread (sb, e2desc->bg_inode_table + (iindex * sbpriv->inode_size) / sb->blocksize);
+	buf = ext2_bread(sb, e2desc->bg_inode_table + (iindex * sbpriv->inode_size) / sb->blocksize);
 
-	e2ino = (struct ext2_inode *) buf->data;
+	e2ino = (struct ext2_inode *)buf->data;
 
 	e2ino += (iindex % (sb->blocksize / sbpriv->inode_size));
 
-	inode = iget (sb, inum);
+	inode = iget(sb, inum);
 	if (inode->count > 0)
 		return inode;
 
@@ -183,15 +182,15 @@ ext2_inode_read (struct super *sb, u64 inum)
 	inode->ctime = e2ino->i_ctime;
 	inode->covered = NULL;
 	inode->flags = e2ino->i_flags;
-	inode->priv = xkmalloc (sizeof (struct ext2_inode_priv));
+	inode->priv = xkmalloc(sizeof(struct ext2_inode_priv));
 
 	ipriv = (struct ext2_inode_priv *)inode->priv;
 
 	for (i = 0; i < 15; i++)
 		ipriv->blocks[i] = e2ino->i_block[i];
 
-// TODO: make this different for different file types? it can be done within 
-// the functions themselves...
+	// TODO: make this different for different file types? it can be done within
+	// the functions themselves...
 	inode->ops = &ext2_inode_ops;
 
 	return inode;
@@ -199,8 +198,7 @@ ext2_inode_read (struct super *sb, u64 inum)
 
 
 
-static size_t 
-ext2_bmap (struct inode *inode, off_t offset)
+static size_t ext2_bmap(struct inode *inode, off_t offset)
 {
 	struct ext2_inode_priv *ipriv = inode->priv;
 	size_t nblock;
@@ -208,8 +206,8 @@ ext2_bmap (struct inode *inode, off_t offset)
 
 	nblock = offset / inode->sb->blocksize;
 
-/*	kprintf ("%s inode %u block %u located in %u\n",
-		__func__, inode->num, nblock, ipriv->blocks[nblock]); */
+	/* kprintf("%s inode %u block %u located in %u\n",
+			__func__, inode->num, nblock, ipriv->blocks[nblock]); */
 
 	if (nblock < 12)
 		return ipriv->blocks[nblock];
@@ -217,16 +215,17 @@ ext2_bmap (struct inode *inode, off_t offset)
 		if (ipriv->blocks[12] == 0)
 			return 0;
 
-		block = bread (inode->sb, ipriv->blocks[12]);
+		block = bread(inode->sb, ipriv->blocks[12]);
 
 		return *(u32 *)(block->data + 4 * (nblock - 12));
 	}
-	/* TODO: as maths are too complex to me :), 
+	/* TODO: as maths are too complex to me :),
 	 * still no double nor triply indirect block supported.
-	 * This means a limit of blocksize * 268 bytes. 
+	 * This means a limit of blocksize * 268 bytes.
 	 * BTW, I could just return 0 instead of a panic but this way,
 	 * I'll know when I need it. */
-	else kpanic ("No double nor triply indirect block supported yet\n");
+	else
+		kpanic("No double nor triply indirect block supported yet\n");
 
 	return 0;
 
@@ -234,34 +233,32 @@ ext2_bmap (struct inode *inode, off_t offset)
 
 
 
-static struct bhead *
-ext2_block_read (struct inode *inode, off_t offset)
+static struct bhead *ext2_block_read(struct inode *inode, off_t offset)
 {
 	size_t blk;
 
-	blk = bmap (inode, offset);
+	blk = bmap(inode, offset);
 	if (blk == 0)
 		return NULL;
 
-	return bread (inode->sb, blk);
+	return bread(inode->sb, blk);
 }
 
 
 
-static struct inode *
-ext2_lookup (struct inode *inode, const char *name, u8 len)
+static struct inode *ext2_lookup(struct inode *inode, const char *name, u8 len)
 {
 	size_t block = 0;
 	size_t offset = 0;
 	struct bhead *buffer;
 	struct ext2_dirent *dirent;
 
-	if (!S_ISDIR (inode->mode))
+	if (!S_ISDIR(inode->mode))
 		return NULL;
 
 	/* TODO: not tested if a dir spans two blocks... */
 	while (offset <= inode->filesize) {
-		buffer = ext2_block_read (inode, block);
+		buffer = ext2_block_read(inode, block);
 		if (buffer == NULL)
 			break;
 
@@ -269,12 +266,12 @@ ext2_lookup (struct inode *inode, const char *name, u8 len)
 
 		while ((void *)dirent < buffer->data + inode->sb->blocksize) {
 			if (len == dirent->name_len &&
-				strncmp (name, dirent->name, len) == 0)
-				/* Err... this has to be adapted 
+				strncmp(name, dirent->name, len) == 0)
+				/* Err... this has to be adapted
 				 * to support mount points, something like:
-				 * (inode->covered) ? inode->covered->sb 
+				 * (inode->covered) ? inode->covered->sb
 				 *        : inode->sb */
-				return ext2_inode_read (inode->sb, dirent->inode);
+				return ext2_inode_read(inode->sb, dirent->inode);
 
 			dirent = (void *)dirent + dirent->rec_len;
 		}
@@ -291,20 +288,20 @@ ext2_lookup (struct inode *inode, const char *name, u8 len)
 
 
 struct inode_ops ext2_inode_ops = {
-//	.create = NULL,
+	// .create = NULL,
 	.lookup = ext2_lookup,
-//	.link = NULL,
-//	.unlink = NULL,
-//	.symlink = NULL,
-//	.mkdir = NULL,
-//	.rmdir = NULL,
-//	.mknod = NULL,
-//	.rename = NULL,
-//	.readlink = NULL,
-//	.follow_link = NULL,
+	// .link = NULL,
+	// .unlink = NULL,
+	// .symlink = NULL,
+	// .mkdir = NULL,
+	// .rmdir = NULL,
+	// .mknod = NULL,
+	// .rename = NULL,
+	// .readlink = NULL,
+	// .follow_link = NULL,
 	.bmap = ext2_bmap,
-//	.truncate = NULL,
-//	.permission = NULL,
+	// .truncate = NULL,
+	// .permission = NULL,
 	.block_read = ext2_block_read
 };
 

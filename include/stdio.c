@@ -16,8 +16,7 @@
 
 
 
-static void
-itoa (s64 n, char *s, u8 base)
+static void itoa(s64 n, char *s, u8 base)
 {
 	char *p;
 	s64 pn = n;
@@ -32,7 +31,7 @@ itoa (s64 n, char *s, u8 base)
 	do {
 		int rem = pn % base;
 
-		*p++ = (rem < 10) ? rem + '0' : rem + 'a' - 10 ;
+		*p++ = (rem < 10) ? rem + '0' : rem + 'a' - 10;
 
 	} while (pn /= base);
 
@@ -49,8 +48,7 @@ itoa (s64 n, char *s, u8 base)
 
 
 
-static void
-itoau (u64 n, char *s, u8 base)
+static void itoau(u64 n, char *s, u8 base)
 {
 	char *p;
 	u64 pn = n;
@@ -66,15 +64,15 @@ itoau (u64 n, char *s, u8 base)
 		u8 f = (n & (0x0000000000ff0000)) >> 16;
 		u8 g = (n & (0x000000000000ff00)) >>  8;
 		u8 h = (n & (0x00000000000000ff)) >>  0;
-		kputs ("\n");
-		kputs ("->"); itoa (a, ss, 10); kputs (ss); kputs ("<-\n");
-		kputs ("->"); itoa (b, ss, 10); kputs (ss); kputs ("<-\n");
-		kputs ("->"); itoa (c, ss, 10); kputs (ss); kputs ("<-\n");
-		kputs ("->"); itoa (d, ss, 10); kputs (ss); kputs ("<-\n");
-		kputs ("->"); itoa (e, ss, 10); kputs (ss); kputs ("<-\n");
-		kputs ("->"); itoa (f, ss, 10); kputs (ss); kputs ("<-\n");
-		kputs ("->"); itoa (g, ss, 10); kputs (ss); kputs ("<-\n");
-		kputs ("->"); itoa (h, ss, 10); kputs (ss); kputs ("<-\n");
+		kputs("\n");
+		kputs("->"); itoa (a, ss, 10); kputs(ss); kputs("<-\n");
+		kputs("->"); itoa (b, ss, 10); kputs(ss); kputs("<-\n");
+		kputs("->"); itoa (c, ss, 10); kputs(ss); kputs("<-\n");
+		kputs("->"); itoa (d, ss, 10); kputs(ss); kputs("<-\n");
+		kputs("->"); itoa (e, ss, 10); kputs(ss); kputs("<-\n");
+		kputs("->"); itoa (f, ss, 10); kputs(ss); kputs("<-\n");
+		kputs("->"); itoa (g, ss, 10); kputs(ss); kputs("<-\n");
+		kputs("->"); itoa (h, ss, 10); kputs(ss); kputs("<-\n");
 	}
 #endif
 
@@ -83,7 +81,7 @@ itoau (u64 n, char *s, u8 base)
 	do {
 		int rem = pn % base;
 
-		*p++ = (rem < 10) ? rem + '0' : rem + 'a' - 10 ;
+		*p++ = (rem < 10) ? rem + '0' : rem + 'a' - 10;
 
 	} while (pn /= base);
 
@@ -118,8 +116,7 @@ char buf[2048];
  * partly implemented.
  * TODO: not bound checking for "buf"!
  */
-void
-kprintf (const char *fmt, ...)
+void kprintf(const char *fmt, ...)
 {
 	const char *p = fmt;
 	char *b = buf;
@@ -130,7 +127,7 @@ kprintf (const char *fmt, ...)
 	if (p == NULL)
 		return;
 
-	va_start (ap, fmt);
+	va_start(ap, fmt);
 
 	do {
 		if (*p == '\0') {
@@ -150,7 +147,7 @@ kprintf (const char *fmt, ...)
 
 
 		flags = 0;
-		
+
 		do {
 			if (*p == '-')
 				flags |= KP_LEFTJUST;
@@ -167,13 +164,13 @@ kprintf (const char *fmt, ...)
 		} while (1);
 
 
-		if (isdigit (*p))
-			width = atoi (p);
+		if (isdigit(*p))
+			width = atoi(p);
 		else
 			width = 0;
 
 
-		while (isdigit (*p))
+		while (isdigit(*p))
 			p++;
 
 
@@ -192,14 +189,13 @@ kprintf (const char *fmt, ...)
 
 		switch (*p) {
 		case 'c':
-			*b++ = ((char) va_arg (ap, int));
+			*b++ = ((char)va_arg(ap, int));
 			break;
 		case 'd':
 		case 'i':
 		case 'p':
 		case 'u':
-		case 'x':
-			{
+		case 'x': {
 			char s[22];
 			char *ps = s;
 			s16 l;
@@ -212,23 +208,23 @@ kprintf (const char *fmt, ...)
 			/* First, let's get a string representation: */
 			if (*p == 'u' || *p == 'p') {
 				if (flags & KP_LONGLONG)
-					itoau (va_arg (ap, unsigned long long int), s, base);
+					itoau(va_arg(ap, unsigned long long int), s, base);
 				else if (flags & KP_LONG)
-					itoau (va_arg (ap, unsigned long int), s, base);
+					itoau(va_arg(ap, unsigned long int), s, base);
 				else
-					itoau (va_arg (ap, unsigned int), s, base);
+					itoau(va_arg(ap, unsigned int), s, base);
 			} else {
 				if (flags & KP_LONGLONG)
-					itoa (va_arg (ap, long long int), s, base);
+					itoa(va_arg(ap, long long int), s, base);
 				else if (flags & KP_LONG)
-					itoa (va_arg (ap, long int), s, base);
+					itoa(va_arg(ap, long int), s, base);
 				else
-					itoa (va_arg (ap, int), s, base);
+					itoa(va_arg(ap, int), s, base);
 			}
 
 
 			/* The lenght of the string */
-			l = strlen (s);
+			l = strlen(s);
 			/* Plus one if the positive sign is wanted */
 			if (flags & KP_SIGN && s[0] != '-')
 				l++;
@@ -277,37 +273,33 @@ kprintf (const char *fmt, ...)
 					*b++ = c;
 			}
 
-			}
-			break;
-		case 's':
-			{
+		} break;
+		case 's': {
 			char *s;
 
-			s = va_arg (ap, char *);
+			s = va_arg(ap, char *);
 			while (*s)
 				*b++ = *s++;
 
-			}
-			break;
+		} break;
 		}
 
 		p++;
 	} while (1);
 
 
-	kputs (buf);
+	kputs(buf);
 
 
-	va_end (ap);
+	va_end(ap);
 }
 
 
 
-void
-kputs (const char *s)
+void kputs(const char *s)
 {
 	while (*s)
-		vga_writechar (*s++);
+		vga_writechar(*s++);
 }
 
 

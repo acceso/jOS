@@ -2,12 +2,12 @@
 
 /* TODO: I want a red-black tree here. After many insert/remove ops,
  * our tree will no longer be O(log n)
- * 
+ *
  * TODO:
  * * we can cache the first and last entry (will speed up some operations
  *   but I don't need any of those operations right now).
  * * make tree_first, tree_last, tree_next, tree_prev have constant params.
- * 
+ *
  */
 
 
@@ -18,8 +18,7 @@
 
 
 /* Return the first (if dir == 0) or last (otherwise) nodes of a subtree */
-static inline struct tnode *
-tree_first_last (struct tnode *node, u8 dir)
+static inline struct tnode *tree_first_last(struct tnode *node, u8 dir)
 {
 	while (node->n[dir])
 		node = node->n[dir];
@@ -29,27 +28,24 @@ tree_first_last (struct tnode *node, u8 dir)
 
 
 
-struct tnode *
-tree_first (struct tree *tree)
+struct tnode *tree_first(struct tree *tree)
 {
-	return tree_first_last (tree->root, 0);
+	return tree_first_last(tree->root, 0);
 }
 
 
 
-struct tnode *
-tree_last (struct tree *tree)
+struct tnode *tree_last(struct tree *tree)
 {
-	return tree_first_last (tree->root, 1);
+	return tree_first_last(tree->root, 1);
 }
 
 
 
-static inline struct tnode *
-tree_prev_next (struct tnode *node, u8 dir)
+static inline struct tnode *tree_prev_next(struct tnode *node, u8 dir)
 {
 	if (node->n[dir])
-		return tree_first_last (node->n[dir], !dir);
+		return tree_first_last(node->n[dir], !dir);
 
 	while (node->parent && node->parent->n[dir] == node) {
 		if (node->parent == NULL)
@@ -63,18 +59,16 @@ tree_prev_next (struct tnode *node, u8 dir)
 
 
 
-struct tnode *
-tree_prev (struct tnode *node)
+struct tnode *tree_prev(struct tnode *node)
 {
-	return tree_prev_next (node, 0);
+	return tree_prev_next(node, 0);
 }
 
 
 
-struct tnode *
-tree_next (struct tnode *node)
+struct tnode *tree_next(struct tnode *node)
 {
-	return tree_prev_next (node, 1);
+	return tree_prev_next(node, 1);
 }
 
 
@@ -83,9 +77,8 @@ tree_next (struct tnode *node)
  * If parent != NULL, store a pointer to the parent there and returns in "pos"
  * if the node should be inserted right or left.
  */
-static struct tnode *
-lookup_node (const struct tree *tree, const struct tnode *node, 
-		struct tnode **parent, u8 *pos)
+static struct tnode *lookup_node(const struct tree *tree, const struct tnode *node,
+				struct tnode **parent, u8 *pos)
 {
 	struct tnode *n = tree->root;
 	struct tnode *p = NULL;
@@ -95,7 +88,7 @@ lookup_node (const struct tree *tree, const struct tnode *node,
 	while (n) {
 		p = n;
 
-		c = tree->f_cmp (n, node);
+		c = tree->f_cmp(n, node);
 		if (c < 0)
 			i = 0;
 		else if (c > 0)
@@ -119,8 +112,7 @@ lookup_node (const struct tree *tree, const struct tnode *node,
 
 
 
-static inline u8
-is_leaf_node (const struct tnode *node)
+static inline u8 is_leaf_node(const struct tnode *node)
 {
 	/* They can only point to the same place if they point to NULL. */
 	return node->l == node->r;
@@ -129,8 +121,7 @@ is_leaf_node (const struct tnode *node)
 
 
 /* Links parent[pos] and children */
-static inline void
-link_children_to_parent (struct tree *tree, struct tnode *node, u8 pos)
+static inline void link_children_to_parent(struct tree *tree, struct tnode *node, u8 pos)
 {
 	if (node->parent) {
 		node->parent->n[node->parent->l != node] = node->n[pos];
@@ -148,32 +139,31 @@ link_children_to_parent (struct tree *tree, struct tnode *node, u8 pos)
 
 /* Dettach a node if exists.
  * Returns if it has been removed (1) or not (0). */
-u8
-tree_detach (struct tree *tree, struct tnode *node)
+u8 tree_detach(struct tree *tree, struct tnode *node)
 {
 	struct tnode *n;
 	u8 pos;
-	
-	n = lookup_node (tree, node, NULL, &pos);
+
+	n = lookup_node(tree, node, NULL, &pos);
 	if (n == NULL)
 		return 0;
 
-	if (is_leaf_node (n))
-		link_children_to_parent (tree, n, pos);
+	if (is_leaf_node(n))
+		link_children_to_parent(tree, n, pos);
 	else if (n->l == NULL || n->r == NULL)
-		link_children_to_parent (tree, n, n->l == NULL);
+		link_children_to_parent(tree, n, n->l == NULL);
 	else if (n->l->r == NULL || n->r->l == NULL) {
 		u8 pos = (n->l->r != NULL);
-		link_children_to_parent (tree, n, pos);
+		link_children_to_parent(tree, n, pos);
 		n->n[!pos]->parent = n->n[pos];
 		n->n[pos]->n[!pos] = n->n[!pos];
 	} else if (n->parent && n->parent->n[!pos] == NULL) {
-		link_children_to_parent (tree, n, pos);
+		link_children_to_parent(tree, n, pos);
 	} else {
 		/* If we reach here, there are no shorcut, we need the next
 		 * or the previous node. I'll leave it to pseudo-chance: */
 		u8 pos = ((u64)n >> 6) & 1;
-		struct tnode *new = tree_prev_next (n, pos);
+		struct tnode *new = tree_prev_next(n, pos);
 
 		new->parent->n[!pos] = new->n[pos];
 		new->l = n->l;
@@ -193,10 +183,9 @@ tree_detach (struct tree *tree, struct tnode *node)
 
 
 /* Searchs for a node. Returns the address if found and NULL if not found */
-struct tnode *
-tree_lookup (const struct tree *tree, const struct tnode *key)
+struct tnode *tree_lookup(const struct tree *tree, const struct tnode *key)
 {
-	return lookup_node (tree, key, NULL, NULL);
+	return lookup_node(tree, key, NULL, NULL);
 }
 
 
@@ -204,14 +193,13 @@ tree_lookup (const struct tree *tree, const struct tnode *key)
 
 /* Attach "node" to "tree".
  * Returns 0 if it is a new node and !0 if the node was already on the tree */
-u8
-tree_attach (struct tree *tree, struct tnode *node)
+u8 tree_attach(struct tree *tree, struct tnode *node)
 {
 	struct tnode *n, *p;
 	u8 pos;
 
 	/* This node is already in the tree. */
-	n = lookup_node (tree, node, &p, &pos);
+	n = lookup_node(tree, node, &p, &pos);
 	if (n != NULL)
 		return 1;
 
@@ -229,8 +217,7 @@ tree_attach (struct tree *tree, struct tnode *node)
 
 
 
-void
-tree_init (struct tree *tree, tree_cmp_fcn_t f_cmp)
+void tree_init(struct tree *tree, tree_cmp_fcn_t f_cmp)
 {
 	tree->root = NULL;
 	tree->f_cmp = f_cmp;

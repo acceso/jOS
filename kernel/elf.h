@@ -8,7 +8,7 @@
 
 
 
-s64 elf_map (const char *path);
+s64 elf_map(const char *path);
 
 
 

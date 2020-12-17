@@ -9,8 +9,8 @@
 
 
 
-u64 tsc_calibration_withpit (u64 *loops);
-void init_pit (void *intr_handler, u32 hz);
+u64 tsc_calibration_withpit(u64 *loops);
+void init_pit(void *intr_handler, u32 hz);
 
 
 #endif /* DRIVERS_PIT_H */

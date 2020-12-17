@@ -14,8 +14,7 @@ static struct task *init;
 
 
 
-void
-kernel_idle (void)
+void kernel_idle(void)
 {
 	while (1)
 		;
@@ -23,30 +22,28 @@ kernel_idle (void)
 
 
 
-void
-sys_exit (u64 code)
+void sys_exit(u64 code)
 {
-	asm volatile ("sti\n\t");
+	asm volatile("sti\n\t");
 	kernel_idle();
 }
 
 
 
-struct task *
-init_task (void)
+struct task *init_task(void)
 {
 	u8 i;
 
-	syscall_register (__NR_exit, sys_exit);
+	syscall_register(__NR_exit, sys_exit);
 
-	init = xkmalloc (sizeof (struct task));
+	init = xkmalloc(sizeof(struct task));
 
 	init->state = TASK_RUNNING;
 
 	for (i = 0; i < NFDS; i++)
 		init->fds[i] = NULL;
 
-	load_init_page_tables (init);
+	load_init_page_tables(init);
 
 	/* TODO: open /dev/std{in,out,err} */
 

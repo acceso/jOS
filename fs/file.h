@@ -7,8 +7,8 @@
 #include "fs.h"
 
 
-struct file *file_get (const char *path);
-void init_files (void);
+struct file *file_get(const char *path);
+void init_files(void);
 
 
 #endif /* FS_FILE_H */

@@ -13,8 +13,7 @@
 #define ACPI_MAGIC(_x)	(*(u32 *)_x)
 
 
-static inline u8
-acpi_csum (void *p, u8 bytes)
+static inline u8 acpi_csum(void *p, u8 bytes)
 {
 	u8 csum = 0;
 	u8 *pp = (u8 *)p;
@@ -26,9 +25,9 @@ acpi_csum (void *p, u8 bytes)
 }
 
 
-void *acpi_search_table (u64 signature);
+void *acpi_search_table(u64 signature);
 
-void init_acpi (void);
+void init_acpi(void);
 
 
 #endif /* KERNEL_ACPI_H */

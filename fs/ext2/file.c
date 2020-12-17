@@ -8,10 +8,9 @@
 
 
 
-struct bhead *
-ext2_bread (struct super *sb, size_t bnum)
+struct bhead *ext2_bread(struct super *sb, size_t bnum)
 {
-	return bread (sb, bnum);
+	return bread(sb, bnum);
 }
 
 

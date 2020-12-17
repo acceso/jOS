@@ -28,9 +28,9 @@ struct task {
 
 
 
-void kernel_idle (void);
+void kernel_idle(void);
 
-struct task *init_task (void);
+struct task *init_task(void);
 
 
 #endif /* KERNEL_TASK_H */

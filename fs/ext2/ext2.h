@@ -12,7 +12,7 @@ struct ext2_bg_desc {
 	u16 bg_free_inodes_count; /* Number of unallocated inodes in group */
 	u16 bg_used_dirs_count; /* Number of directories in group */
 	char pad[14];
-} __attribute__ ((__packed__));
+} __attribute__((__packed__));
 
 
 

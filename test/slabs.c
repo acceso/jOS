@@ -12,10 +12,9 @@ struct ura {
 
 
 
-void *
-kma_alloc (size_t size)
+void *kma_alloc(size_t size)
 {
-	return malloc (size);
+	return malloc(size);
 }
 
 
@@ -23,8 +22,7 @@ kma_alloc (size_t size)
 
 
 
-void
-kma_free (void *addr)
+void kma_free(void *addr)
 {
 
 }
@@ -34,28 +32,27 @@ kma_free (void *addr)
 
 void *ptrs[SZ];
 
-int
-main (int argc, char **argv)
+int main(int argc, char **argv)
 {
 	struct kcache *c;
 	int i;
 
 
-	c = kcache_create ("test", sizeof (struct ura));
+	c = kcache_create("test", sizeof(struct ura));
 
 	for (i = 0; i < SZ; i++)
-		ptrs[i] = kcache_alloc (c);
+		ptrs[i] = kcache_alloc(c);
 
-	void *ejem = kcache_alloc (c);
-	kcache_free (c, ejem);
+	void *ejem = kcache_alloc(c);
+	kcache_free(c, ejem);
 
 	for (i = 0; i < SZ; i++)
-		kcache_free (c, ptrs[i]);
+		kcache_free(c, ptrs[i]);
 
 
-	printf ("Nothing :(.");
+	printf("Nothing :(.");
 
-	kcache_destroy (c);
+	kcache_destroy(c);
 
 	return 0;
 }

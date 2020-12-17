@@ -7,8 +7,7 @@
 
 
 
-inline static u64
-div (u64 n, u32 d)
+inline static u64 div(u64 n, u32 d)
 {
 	u32 q, r;
 
@@ -22,7 +21,7 @@ div (u64 n, u32 d)
 
 
 
-u64 atoi (const char *s);
+u64 atoi(const char *s);
 
 
 

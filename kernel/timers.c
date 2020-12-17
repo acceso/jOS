@@ -30,41 +30,38 @@ static u64 loops_per_jiffy;
 
 
 
-__isr__
-do_pit (struct intr_frame r)
+__isr__ do_pit(struct intr_frame r)
 {
-	intr_enter ();
+	intr_enter();
 
 
 	jiffies++;
 	/*if (jiffies % 10 == 0)
-		kprintf (".");*/
+		kprintf(".");*/
 
 
-	lapic_eoi ();
+	lapic_eoi();
 
-	intr_exit ();
+	intr_exit();
 }
 
 
 
 
-__isr__
-do_lapictim (struct intr_frame r)
+__isr__ do_lapictim(struct intr_frame r)
 {
-	intr_enter ();
+	intr_enter();
 
-	/*kprintf ("tick! %llu ", ticks ());*/
+	/*kprintf("tick! %llu ", ticks ());*/
 
-	lapic_eoi ();
+	lapic_eoi();
 
-	intr_exit ();
+	intr_exit();
 }
 
 
 
-static void
-tsc_calibration (void)
+static void tsc_calibration(void)
 {
 	u64 hz, mhz, loops;
 	u8 i;
@@ -76,7 +73,7 @@ tsc_calibration (void)
 	i = 4;
 
 	while (i--) {
-		hz = tsc_calibration_withpit (&loops);
+		hz = tsc_calibration_withpit(&loops);
 		if (hz < sys.cpu[0].hz)
 			sys.cpu[0].hz = hz;
 		if (loops < loops_per_jiffy)
@@ -89,7 +86,7 @@ tsc_calibration (void)
 	if (mhz == 0)
 		kpanic("Can't calibrate the cpu!!");
 
-	kprintf ("Cpu speed calibrated to: %ldMhz, %ld BogoMIPS\n",
+	kprintf("Cpu speed calibrated to: %ldMhz, %ld BogoMIPS\n",
 		mhz, loops_per_jiffy);
 
 }
@@ -98,18 +95,17 @@ tsc_calibration (void)
 
 
 
-void
-init_timers (void)
+void init_timers(void)
 {
 
-	tsc_calibration ();
+	tsc_calibration();
 
-	init_pit (do_pit, HZ);
+	init_pit(do_pit, HZ);
 
-	init_lapic_timer (do_lapictim, HZ);
+	init_lapic_timer(do_lapictim, HZ);
 
-	init_rtc ();
-	
+	init_rtc();
+
 	return;
 }
 
